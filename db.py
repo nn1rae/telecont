@@ -9,4 +9,3 @@ db.insert({'user1': from_user})
 user = Query()
 
 vm = db.search(user.user1 == 'y')
-print(vm)
