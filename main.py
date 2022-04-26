@@ -9,8 +9,8 @@ import string
 
 db = TinyDB('db.json')
 quv = Query()
-def new_user(id):
-    db.insert({'userid': id, 'prom': 0, 'wait': False, 'mon': 0})
+def new_user(id,username='none'):
+    db.insert({'userid': id, 'prom': 0, 'wait': False, 'mon': 0, 'username': username})
 def getdb(id,arg2 = 1):
     get0 = db.search(quv.userid == id)
     new_get = get0[0]
@@ -22,6 +22,8 @@ def getdb(id,arg2 = 1):
         return new_get['wait']
     elif arg2 == 3 :
         return new_get['mon']
+    elif arg2 == 4 :
+        return new_get['username']
 
 def del_mon(id,num):
     db.update({'mon': getdb(id, 3) - num}, quv.userid == id)
@@ -54,6 +56,7 @@ def adm(messege):
 @bot.message_handler(commands=['start'])
 def start(messege):
     user_id = messege.from_user.id
+    username = messege.from_user.username
     markup = types.ReplyKeyboardMarkup(row_width=2)
     itembtn1 = types.KeyboardButton('🔰my prom🔰')
     itembtn2 = types.KeyboardButton('play')
@@ -62,7 +65,7 @@ def start(messege):
         
         bot.send_message(messege.chat.id, f'Hello {messege.from_user.username}, wellcome back 😄, currently you have |{getdb(user_id)}| promo ', reply_markup=markup)
     except:
-        new_user(user_id)
+        new_user(user_id, username)
         bot.send_message(messege.chat.id, f'Hello {messege.from_user.username}, ?how you doing¿',reply_markup=markup)
 @bot.message_handler(commands=['menu'])
 def menu(messege):
@@ -87,36 +90,31 @@ def text_input(messege):
             itembtn2 = types.KeyboardButton('play')
             itembtn3 = types.KeyboardButton('my ballance 🍾')
             markup.add(itembtn1, itembtn2, itembtn3)
+            rend_cal = {'🥎': 0, '⚾️': 1}
             rend = random.randrange(0,2)
-            if int(messege.text)== rend:
+            if rend_cal[messege.text] == rend:
                 bot.send_message(messege.chat.id,'Congrats, +1 to youre ballance🥂',reply_markup=markup)
                 db.update({'mon': getdb(messege.from_user.id, 3) + 1}, quv.userid == messege.from_user.id)
             else:
                 bot.send_message(messege.chat.id,'Not youre day I gess',reply_markup=markup)
 
             db.update({'wait': False}, quv.userid == messege.from_user.id)
-            
-            
+        
     elif messege.text in check_prom_tmp:
         new_prom = check_prom_tmp.replace(messege.text, '')
         db.update({'prom': getdb(messege.from_user.id) + 1}, quv.userid == messege.from_user.id)
         with open('promos.txt', 'w') as new_prom_list:
             new_prom_list.write(new_prom)
-        bot.send_message(messege.chat.id,'+1 to your proms🍬')
-        
-            
-
-
-    
+        bot.send_message(messege.chat.id,'+1 to your proms🍬')    
     elif messege.text == '🔰my prom🔰':
         bot.send_message(messege.chat.id, f'currently you have |{getdb(messege.from_user.id)}| promo')
     elif messege.text == 'play':
         if getdb(messege.from_user.id) > 0 :
             markup_pl = types.ReplyKeyboardMarkup()
-            itembtn_pl = types.KeyboardButton('0')
-            itembtn_pl1 = types.KeyboardButton('1')
+            itembtn_pl = types.KeyboardButton('⚾️')
+            itembtn_pl1 = types.KeyboardButton('🥎')
             markup_pl.add(itembtn_pl1, itembtn_pl)
-            bot.send_message(messege.chat.id,'0 or 1?',reply_markup=markup_pl)
+            bot.send_message(messege.chat.id,'⚾️ or 🥎?',reply_markup=markup_pl)
             tmp_prom = getdb(messege.from_user.id) - 1
             db.update({'prom': tmp_prom, 'wait': True}, quv.userid == messege.from_user.id)
         else:
