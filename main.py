@@ -169,7 +169,8 @@ def text_input(messege):
                     user = temp_ran['userid']
                     mon = temp_ran['mon']
                     prom = temp_ran['prom']
-                    ttmp.write(f'\nid. {user} | mon. {mon} |prom. {prom} ')
+                    username = temp_ran['username']
+                    ttmp.write(f'\nid. {user} |username. {username}| mon. {mon} |prom. {prom} ')
             with open('tmp_list.txt', 'rb') as last_use_tmlist:
                 bot.send_message(messege.chat.id,last_use_tmlist.read())
                 os.remove("tmp_list.txt")
