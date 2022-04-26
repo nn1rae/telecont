@@ -100,7 +100,7 @@ def text_input(messege):
 
             db.update({'wait': False}, quv.userid == messege.from_user.id)
         
-    elif messege.text in check_prom_tmp:
+    elif messege.text in check_prom_tmp and len(messege.text) == 5:
         new_prom = check_prom_tmp.replace(messege.text, '')
         db.update({'prom': getdb(messege.from_user.id) + 1}, quv.userid == messege.from_user.id)
         with open('promos.txt', 'w') as new_prom_list:
@@ -178,12 +178,10 @@ def text_input(messege):
             with open('tmp_del', 'w') as tmp_del:
                 tmp_del.write('1')
             bot.send_message(messege.chat.id,'return ID')
-
-
-    
+        else:
+            bot.send_message(messege.chat.id,'I dont understand🦭')
     else:
         bot.send_message(messege.chat.id,'I dont understand🦭')
-
     
 
 bot.polling(none_stop=True)
