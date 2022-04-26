@@ -7,7 +7,7 @@ from tinydb import TinyDB, Query
 db = TinyDB('db.json')
 quv = Query()
 def new_user(id):
-    db.insert({'userid': id, 'prom': 0, 'wait': False})
+    db.insert({'userid': id, 'prom': 0, 'wait': False, 'mon': 0})
 def getdb(id,arg2 = 1):
     get0 = db.search(quv.userid == id)
     new_get = get0[0]
@@ -17,7 +17,8 @@ def getdb(id,arg2 = 1):
         return new_get['prom']
     elif arg2 == 2 :
         return new_get['wait']
-
+    elif arg2 == 3 :
+        return new_get['mon']
 
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
@@ -56,15 +57,22 @@ def start(messege):
 @bot.message_handler(content_types=['text'])   
 def text_input(messege):
     if getdb(messege.from_user.id,2) == True:
-            rend = random.randrange(0,2)
-            if int(messege.text)== rend:
-                bot.send_message(messege.chat.id,'cool')
-            db.update({'wait': False}, quv.userid == messege.from_user.id)
             markup = types.ReplyKeyboardMarkup(row_width=2)
             itembtn1 = types.KeyboardButton('🔰my prom🔰')
             itembtn2 = types.KeyboardButton('play')
-            markup.add(itembtn1, itembtn2)
-            bot.send_message(messege.chat.id,'nice',reply_markup=markup)
+            itembtn3 = types.KeyboardButton('my ballance 🍾')
+            markup.add(itembtn1, itembtn2, itembtn3)
+            
+            rend = random.randrange(0,2)
+            if int(messege.text)== rend:
+                bot.send_message(messege.chat.id,'Congrats, +1 to youre ballance🥂',reply_markup=markup)
+                db.update({'mon': getdb(messege.from_user.id, 3) + 1}, quv.userid == messege.from_user.id)
+            else:
+                bot.send_message(messege.chat.id,'Not youre day I gess',reply_markup=markup)
+
+            db.update({'wait': False}, quv.userid == messege.from_user.id)
+            
+            
 
 
     
@@ -79,10 +87,12 @@ def text_input(messege):
             bot.send_message(messege.chat.id,'0 or 1?',reply_markup=markup_pl)
             tmp_prom = getdb(messege.from_user.id) - 1
             db.update({'prom': tmp_prom, 'wait': True}, quv.userid == messege.from_user.id)
+        else:
+            bot.send_message(messege.chat.id,'Sorry, you have 0 prom')
+
+    elif messege.text == 'my ballance 🍾':
+        bot.send_message(messege.chat.id, f'Youre corrent balance is {getdb(messege.from_user.id, 3)}')
             
-            
-        
-        
     elif messege.from_user.id == 999711677:
         if messege.text == '👛new code👛':
             bot.send_message(messege.chat.id, 'soon')
