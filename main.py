@@ -178,8 +178,6 @@ def text_input(messege):
             with open('tmp_del', 'w') as tmp_del:
                 tmp_del.write('1')
             bot.send_message(messege.chat.id,'return ID')
-        else:
-            bot.send_message(messege.chat.id,'I dont understand🦭')
     else:
         bot.send_message(messege.chat.id,'I dont understand🦭')
     
