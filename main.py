@@ -1,8 +1,10 @@
+from secrets import choice
 from telebot import types
 import random
 import telebot
 from tinydb import TinyDB, Query
 import os
+import string
 
 
 db = TinyDB('db.json')
@@ -11,18 +13,22 @@ def new_user(id):
     db.insert({'userid': id, 'prom': 0, 'wait': False, 'mon': 0})
 def getdb(id,arg2 = 1):
     get0 = db.search(quv.userid == id)
-    try:
-        new_get = get0[0]
-        if arg2 == 0:
-            return new_get['userid']
-        elif arg2 == 1 :
-            return new_get['prom']
-        elif arg2 == 2 :
-            return new_get['wait']
-        elif arg2 == 3 :
-            return new_get['mon']
-    except:
-        return False
+    new_get = get0[0]
+    if arg2 == 0:
+        return new_get['userid']
+    elif arg2 == 1 :
+        return new_get['prom']
+    elif arg2 == 2 :
+        return new_get['wait']
+    elif arg2 == 3 :
+        return new_get['mon']
+
+def new_code():
+    prom_temp = ''
+    alfab = string.ascii_uppercase + string.digits
+    for i in range(5):
+        prom_temp += random.choice(alfab)
+    return prom_temp 
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
 #admin pannel
@@ -48,17 +54,27 @@ def start(messege):
     itembtn1 = types.KeyboardButton('🔰my prom🔰')
     itembtn2 = types.KeyboardButton('play')
     markup.add(itembtn1, itembtn2)
-    if getdb(user_id) != False:
+    try:
         
         bot.send_message(messege.chat.id, f'Hello {messege.from_user.username}, wellcome back 😄, currently you have |{getdb(user_id)}| promo ', reply_markup=markup)
-    else:
+    except:
         new_user(user_id)
         bot.send_message(messege.chat.id, f'Hello {messege.from_user.username}, ?how you doing¿',reply_markup=markup)
 
 #text handler
 @bot.message_handler(content_types=['text'])   
 def text_input(messege):
-    if getdb(messege.from_user.id,2) == True:
+    with open('promos.txt', 'r') as promos:
+        check_prom_tmp = promos.read()
+    if messege.text in check_prom_tmp:
+        new_prom = check_prom_tmp.replace(messege.text, '')
+        db.update({'prom': getdb(messege.from_user.id) + 1}, quv.userid == messege.from_user.id)
+        with open('promos.txt', 'w') as new_prom_list:
+            new_prom_list.write(new_prom)
+        bot.send_message(messege.chat.id,'+1 to your proms🍬')
+        
+
+    elif getdb(messege.from_user.id,2) == True:
             markup = types.ReplyKeyboardMarkup(row_width=2)
             itembtn1 = types.KeyboardButton('🔰my prom🔰')
             itembtn2 = types.KeyboardButton('play')
@@ -99,13 +115,19 @@ def text_input(messege):
     
     elif messege.from_user.id == 999711677:
         if messege.text == '👛new code👛':
-            bot.send_message(messege.chat.id, 'soon')
-        
+            ncode = new_code()
+            with open('promos.txt', 'a') as promos:
+                promos.write('\n' + ncode)
+            with open('promos.txt', 'rb') as promos:
+                bot.send_message(messege.chat.id, f'Code.{ncode} just ganereted')
         
         elif messege.text == '📃all codes📃':
-            bot.send_message(messege.chat.id,'soon')
-        
-        
+            with open('promos.txt', 'rb') as promosr:
+                try:
+                    bot.send_message(messege.chat.id,promosr.read())
+                except:
+                    bot.send_message(messege.chat.id,'no codes left')
+
         elif messege.text == '🧁List🧁':
             tmp_list = db.all()
             for i in range(len(tmp_list)):
