@@ -92,13 +92,19 @@ def text_input(messege):
             markup.add(itembtn1, itembtn2, itembtn3)
             rend_cal = {'🥎': 0, '⚾️': 1}
             rend = random.randrange(0,2)
-            if rend_cal[messege.text] == rend:
-                bot.send_message(messege.chat.id,'Congrats, +1 to youre ballance🥂',reply_markup=markup)
-                db.update({'mon': getdb(messege.from_user.id, 3) + 1}, quv.userid == messege.from_user.id)
-            else:
-                bot.send_message(messege.chat.id,'Not youre day I gess',reply_markup=markup)
-
-            db.update({'wait': False}, quv.userid == messege.from_user.id)
+            try:
+                if rend_cal[messege.text] == rend:
+                    bot.send_message(messege.chat.id,'Congrats, +1 to youre ballance🥂',reply_markup=markup)
+                    db.update({'mon': getdb(messege.from_user.id, 3) + 1}, quv.userid == messege.from_user.id)
+                else:
+                    bot.send_message(messege.chat.id,'Not youre day I gess',reply_markup=markup)
+                db.update({'wait': False}, quv.userid == messege.from_user.id)
+            except:
+                markup_ppl = types.ReplyKeyboardMarkup()
+                itembtn_ppl = types.KeyboardButton('⚾️')
+                itembtn_ppl1 = types.KeyboardButton('🥎')
+                markup_ppl.add(itembtn_ppl1, itembtn_ppl)
+                bot.send_message(messege.chat.id, 'Please choose a ball', reply_markup=markup_ppl)
         
     elif messege.text in check_prom_tmp and len(messege.text) == 5:
         new_prom = check_prom_tmp.replace(messege.text, '')
