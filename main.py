@@ -81,6 +81,7 @@ def menu(messege):
 #text handler
 @bot.message_handler(content_types=['text'])   
 def text_input(messege):
+    print(str(messege.text) + ' |  from ' + str(messege.from_user.username))
     with open('promos.txt', 'r') as promos:
         check_prom_tmp = promos.read()
 
@@ -149,7 +150,8 @@ def text_input(messege):
                 del_list = list(tmp_user_del.read().split('\n'))
             try:
                 del_mon(int(del_list[0]),int(del_list[1]))
-                bot.send_message(messege.chat.id,f'just took {del_list[1]} from {del_list[0]}🍜🍜')
+                tem_user_var = getdb(int(del_list[0]), 4)
+                bot.send_message(messege.chat.id,f'just took {del_list[1]} from {tem_user_var}🍜🍜')
 
             except:
                 bot.send_message(messege.chat.id,'Error wille deleting👻')
