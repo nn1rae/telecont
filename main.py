@@ -27,7 +27,8 @@ def getdb(id,arg2 = 1):
 
 def del_mon(id,num):
     db.update({'mon': getdb(id, 3) - num}, quv.userid == id)
-    
+def add_mon(id,num):
+    db.update({'mon': getdb(id, 3) + num}, quv.userid == id)
 def new_code():
     prom_temp = ''
     alfab = string.ascii_uppercase + string.digits
@@ -47,7 +48,8 @@ def adm(messege):
         admitem2 = types.KeyboardButton('📃all codes📃')
         admitem3 = types.KeyboardButton('🧁List🧁')
         admitem4 = types.KeyboardButton('💳🔨DEL mon')
-        markup.add(admitem1, admitem2, admitem3, admitem4)
+        admitem5 = types.KeyboardButton('📥💵Give mon')
+        markup.add(admitem1, admitem2, admitem3, admitem4, admitem5)
         bot.send_message(messege.chat.id,'Your choise, my lord', reply_markup=markup)
     else:
         bot.send_message(messege.chat.id,'You are not alowed to use that')
@@ -155,6 +157,32 @@ def text_input(messege):
 
             except:
                 bot.send_message(messege.chat.id,'Error wille deleting👻')
+        
+        with open('tmp_add', 'r') as del_check:
+            del_check = int(del_check.read())
+        if del_check == 1:
+            with open('tmp_user_add', 'w') as tmp_user_del:
+                tmp_user_del.write(messege.text)
+                with open('tmp_add','w') as del_write:
+                    del_write.write('2')
+                bot.send_message(messege.chat.id, 'How much wuld you like add?🤔')
+        elif del_check == 2:
+            with open('tmp_user_add', 'a') as tmp_user_del:
+                tmp_user_del.write('\n' + messege.text)
+                with open('tmp_add','w') as del_write:
+                    del_write.write('0')
+            with open('tmp_user_add','r')as tmp_user_del:
+                del_list = list(tmp_user_del.read().split('\n'))
+            try:
+                add_mon(int(del_list[0]),int(del_list[1]))
+                tem_user_var = getdb(int(del_list[0]), 4)
+                how_much_has = getdb(int(del_list[0]), 3)
+                bot.send_message(messege.chat.id,f'just added {del_list[1]} from {tem_user_var}🥱, and now he/she has {how_much_has}.')
+
+            except:
+                bot.send_message(messege.chat.id,'Error wille adding🤒')
+        
+        
         if messege.text == '👛new code👛':
             ncode = new_code()
             with open('promos.txt', 'a') as promos:
@@ -186,6 +214,10 @@ def text_input(messege):
             with open('tmp_del', 'w') as tmp_del:
                 tmp_del.write('1')
             bot.send_message(messege.chat.id,'return ID')
+        elif messege.text == '📥💵Give mon':
+            with open('tmp_add', 'w') as tmp_del:
+                tmp_del.write('1')
+                bot.send_message(messege.chat.id,'return ID')
     else:
         bot.send_message(messege.chat.id,'I dont understand🦭')
     
