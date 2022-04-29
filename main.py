@@ -49,7 +49,8 @@ def adm(messege):
         admitem3 = types.KeyboardButton('🧁List🧁')
         admitem4 = types.KeyboardButton('💳🔨DEL mon')
         admitem5 = types.KeyboardButton('📥💵Give mon')
-        markup.add(admitem1, admitem2, admitem3, admitem4, admitem5)
+        admitem6 = types.KeyboardButton('📨Send mess')
+        markup.add(admitem1, admitem2, admitem3, admitem4, admitem5, admitem6)
         bot.send_message(messege.chat.id,'Your choise, my lord', reply_markup=markup)
     else:
         bot.send_message(messege.chat.id,'You are not alowed to use that')
@@ -132,8 +133,7 @@ def text_input(messege):
     elif messege.text == 'my ballance 🍾':
         bot.send_message(messege.chat.id, f'Youre corrent balance is {getdb(messege.from_user.id, 3)}')
             
-    
-    
+    #admin pan inside
     elif messege.from_user.id == 999711677:
         with open('tmp_del', 'r') as del_check:
             del_check = int(del_check.read())
@@ -153,7 +153,8 @@ def text_input(messege):
             try:
                 del_mon(int(del_list[0]),int(del_list[1]))
                 tem_user_var = getdb(int(del_list[0]), 4)
-                bot.send_message(messege.chat.id,f'just took {del_list[1]} from {tem_user_var}🍜🍜')
+                how_much_has = getdb(int(del_list[0]), 3)
+                bot.send_message(messege.chat.id,f'just took {del_list[1]} from {tem_user_var}🍜🍜, now his/her ballence is {how_much_has}')
 
             except:
                 bot.send_message(messege.chat.id,'Error wille deleting👻')
@@ -177,26 +178,49 @@ def text_input(messege):
                 add_mon(int(del_list[0]),int(del_list[1]))
                 tem_user_var = getdb(int(del_list[0]), 4)
                 how_much_has = getdb(int(del_list[0]), 3)
-                bot.send_message(messege.chat.id,f'just added {del_list[1]} from {tem_user_var}🥱, and now he/she has {how_much_has}.')
+                bot.send_message(messege.chat.id,f'just added {del_list[1]} to {tem_user_var}🥱, and now he/she has {how_much_has}.')
 
             except:
                 bot.send_message(messege.chat.id,'Error wille adding🤒')
         
+        with open('tmp_send', 'r') as del_check:
+            del_check = int(del_check.read())
+        if del_check == 1:
+            with open('tmp_user_send', 'w') as tmp_user_del:
+                tmp_user_del.write(messege.text)
+                with open('tmp_send','w') as del_write:
+                    del_write.write('2')
+                bot.send_message(messege.chat.id, 'what do you want to send?🛍')
+        elif del_check == 2:
+            with open('tmp_user_send', 'a') as tmp_user_del:
+                tmp_user_del.write('\n' + messege.text)
+                with open('tmp_send','w') as del_write:
+                    del_write.write('0')
+            with open('tmp_user_send','r')as tmp_user_del:
+                del_list = list(tmp_user_del.read().split('\n'))
+            try:
+                # add_mon(int(del_list[0]),int(del_list[1]))
+                tem_user_var = getdb(int(del_list[0]), 4)
+                # how_much_has = getdb(int(del_list[0]), 3)
+                bot.send_message(int(del_list[0]), str(del_list[1]))
+                bot.send_message(messege.chat.id, 'just sended # {} # to {} 📬'.format(del_list[1], tem_user_var))
+
+            except:
+                bot.send_message(messege.chat.id,'Error wille sending📭')
         
+
         if messege.text == '👛new code👛':
             ncode = new_code()
             with open('promos.txt', 'a') as promos:
                 promos.write('\n' + ncode)
             with open('promos.txt', 'rb') as promos:
-                bot.send_message(messege.chat.id, f'Code.{ncode} just ganereted')
-        
+                bot.send_message(messege.chat.id, f'Code.{ncode} just ganereted') 
         elif messege.text == '📃all codes📃':
             with open('promos.txt', 'rb') as promosr:
                 try:
                     bot.send_message(messege.chat.id,promosr.read())
                 except:
                     bot.send_message(messege.chat.id,'no codes left')
-
         elif messege.text == '🧁List🧁':
             tmp_list = db.all()
             for i in range(len(tmp_list)):
@@ -218,8 +242,13 @@ def text_input(messege):
             with open('tmp_add', 'w') as tmp_del:
                 tmp_del.write('1')
                 bot.send_message(messege.chat.id,'return ID')
+        elif messege.text == '📨Send mess':
+            with open('tmp_send', 'w') as tmp_del:
+                tmp_del.write('1')
+                bot.send_message(messege.chat.id,'return ID')
     else:
         bot.send_message(messege.chat.id,'I dont understand🦭')
+        
     
 
 bot.polling(none_stop=True)
