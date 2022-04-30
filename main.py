@@ -37,6 +37,50 @@ def new_code():
     return prom_temp 
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
+#shity responsez
+@bot.message_handler(func=lambda messege: True ,content_types=["sticker"]) 
+def stiker(messege):
+    sticker_ans = ['Офигел/а чи шо?','Нафиг ты мне свои стикеры кидаешь а?', 'Жалко твоих родителей….', 'Фактиш', 'Гвоздь мне в кеды', 'Император тобой не доволен', 'Имератор забрать твоя жена за такое', 'Ульяна, вы?🧐']
+    bot.reply_to(messege, random.choice(sticker_ans))
+
+@bot.message_handler(func=lambda messege: True ,content_types=["photo"])
+def stiker(messege):
+    photo_ans = ['Ладно', '🤨📸', 'За такое в некоторых странах сажают...', 'Это не план захвата Польши.', 'План захвата Польши?!?!?!', 'Пожалуй это я сохраню']
+    bot.reply_to(messege, random.choice(photo_ans))
+
+@bot.message_handler(func=lambda messege: True ,content_types=["voice", "audio"])
+def stiker(messege):
+    audio_ans = ['Ну ок и что?', 'Что за стоны','Ты там не разборчиво говоришь да и мне пофиг', 'Зачем мне по твоему это?', 'Хз']
+    bot.reply_to(messege, random.choice(audio_ans))
+
+@bot.message_handler(func=lambda messege: True ,content_types=["video"])
+def stiker(messege):
+    video_ans = ['Я планирую польшу захватывать, это мне не поможет.', 'Илон маск покупает это видео', 'Ничего гениальнее я ещё не видел', '🦽?', 'Если бы я был живим то вызвал бы копов👨‍🦯']
+    bot.reply_to(messege, random.choice(video_ans))
+
+@bot.message_handler(func=lambda messege: True ,content_types=["animation"]) 
+def stiker(messege):
+    animation_ans = ['Не грузит, это что-то важное?', 'У-у-у-у-у 🐒', 'Эмз, потому что только у нее есть телефон', '🙋‍♂️', 'Ульяна, вы?🧐']
+    bot.reply_to(messege, random.choice(animation_ans))
+
+
+
+@bot.message_handler(content_types=['dice'])
+def dice(messege):
+    print(messege.dice)
+
+@bot.message_handler(commands=['info'])
+def info(messege):
+    mes = """
+    *Информация по боту*
+    Бот создан на языке Python3
+    Просто по рофлу 
+    *____________________________*
+    Версия *0.2*
+    
+    Создатель *Klesberg*
+    """
+    bot.send_message(messege.chat.id,mes,parse_mode= 'Markdown')
 #admin pannel
 @bot.message_handler(commands=['adm'])
 def adm(messege):
@@ -265,16 +309,13 @@ def text_input(messege):
                 tmp_del.write('1')
                 bot.send_message(messege.chat.id,'Кинь idшку')
     else:
-        rand_ans = random.randint(0,3)
-        if rand_ans == 0:
-            bot.send_message(messege.chat.id,'Не пон че ты шпрехаеш')
-        elif rand_ans == 1:
-            bot.send_message(messege.chat.id,'Я тебя не понимать блин')
-        elif rand_ans == 2:
-            bot.send_message(messege.chat.id,'Нефига не понял, Миша давай все по новой')
-        elif rand_ans == 3:
-            bot.send_message(messege.chat.id,'Мой русский не понимать твоего язык')
-            
+        strpon = messege.text
+        if 'пон' in strpon.lower():
+            notoz = ['Не быкуй а?', 'А вот я тебя не понял', 'Ок…']
+            bot.reply_to(messege,random.choice(notoz))
+        else:
+            not_und = ['Не пон че ты шпрехаеш', 'Я тебя не понимать блин', 'Нефига не понял, Миша давай все по новой','Мой русский не понимать твоего язык']
+            bot.send_message(messege.chat.id,random.choice(not_und))
         
     
 
