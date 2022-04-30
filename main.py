@@ -136,10 +136,8 @@ def text_input(messege):
             tmp_prom = getdb(messege.from_user.id) - 1
             db.update({'prom': tmp_prom, 'wait': True}, quv.userid == messege.from_user.id)
         else:
-            bot.send_message(messege.chat.id,'Свалил/а, у тебя 0 попыток')
-
+            bot.send_message(messege.chat.id,'Нельзя играть когда у тебя *0* попыток',parse_mode= 'Markdown')
     elif messege.text == 'Кол-во моих монет🏦':
-        #bot.send_message(messege.chat.id, f'У тебя {getdb(messege.from_user.id, 3)} монет')
         rand_ans = random.randint(0,4)
         if rand_ans >= 0 and rand_ans < 3:
             bot.send_message(messege.chat.id,f'У тебя {getdb(messege.from_user.id, 3)} монет.')
@@ -150,20 +148,20 @@ def text_input(messege):
             
     #admin pan inside
     elif messege.from_user.id == 999711677:
-        with open('tmp_del', 'r') as del_check:
+        with open('tmp/tmp_del', 'r') as del_check:
             del_check = int(del_check.read())
         if del_check == 1:
-            with open('tmp_user_del', 'w') as tmp_user_del:
+            with open('tmp/tmp_user_del', 'w') as tmp_user_del:
                 tmp_user_del.write(messege.text)
-                with open('tmp_del','w') as del_write:
+                with open('tmp/tmp_del','w') as del_write:
                     del_write.write('2')
                 bot.send_message(messege.chat.id, 'Сколько монет изъять??🙃')
         elif del_check == 2:
-            with open('tmp_user_del', 'a') as tmp_user_del:
+            with open('tmp/tmp_user_del', 'a') as tmp_user_del:
                 tmp_user_del.write('\n' + messege.text)
-                with open('tmp_del','w') as del_write:
+                with open('tmp/tmp_del','w') as del_write:
                     del_write.write('0')
-            with open('tmp_user_del','r')as tmp_user_del:
+            with open('tmp/tmp_user_del','r')as tmp_user_del:
                 del_list = list(tmp_user_del.read().split('\n'))
             try:
                 del_mon(int(del_list[0]),int(del_list[1]))
@@ -174,20 +172,20 @@ def text_input(messege):
             except:
                 bot.send_message(messege.chat.id,'Ошибонька при изъятии 🤯')
         
-        with open('tmp_add', 'r') as del_check:
+        with open('tmp/tmp_add', 'r') as del_check:
             del_check = int(del_check.read())
         if del_check == 1:
-            with open('tmp_user_add', 'w') as tmp_user_del:
+            with open('tmp/tmp_user_add', 'w') as tmp_user_del:
                 tmp_user_del.write(messege.text)
-                with open('tmp_add','w') as del_write:
+                with open('tmp/tmp_add','w') as del_write:
                     del_write.write('2')
                 bot.send_message(messege.chat.id, 'Скок добавить?🤔')
         elif del_check == 2:
-            with open('tmp_user_add', 'a') as tmp_user_del:
+            with open('tmp/tmp_user_add', 'a') as tmp_user_del:
                 tmp_user_del.write('\n' + messege.text)
-                with open('tmp_add','w') as del_write:
+                with open('tmp/tmp_add','w') as del_write:
                     del_write.write('0')
-            with open('tmp_user_add','r')as tmp_user_del:
+            with open('tmp/tmp_user_add','r')as tmp_user_del:
                 del_list = list(tmp_user_del.read().split('\n'))
             try:
                 add_mon(int(del_list[0]),int(del_list[1]))
@@ -198,27 +196,27 @@ def text_input(messege):
             except:
                 bot.send_message(messege.chat.id,'Ошибонька при добавлении 🫢')
         
-        with open('tmp_send', 'r') as del_check:
+        with open('tmp/tmp_send', 'r') as del_check:
             del_check = int(del_check.read())
         if del_check == 1:
-            with open('tmp_user_send', 'w') as tmp_user_del:
+            with open('tmp/tmp_user_send', 'w') as tmp_user_del:
                 tmp_user_del.write(messege.text)
-            with open('tmp_send','w') as del_write:  #posib error
+            with open('tmp/tmp_send','w') as del_write:  #posib error
                     del_write.write('2')
-            with open('tmp_user_send', 'r') as tmp_user_del:
+            with open('tmp/tmp_user_send', 'r') as tmp_user_del:
                 user_id_send_for_db = tmp_user_del.read()
             try:
                 bot.send_message(messege.chat.id, 'Что отправить {}?🛍'.format(getdb(int(user_id_send_for_db),4)))
             except:
                 bot.send_message(messege.chat.id,'Ошибонька при отправлении📭')
-                with open('tmp_send','w') as del_write:
+                with open('tmp/tmp_send','w') as del_write:
                     del_write.write('0')
         elif del_check == 2:
-            with open('tmp_user_send', 'a') as tmp_user_del:
+            with open('tmp/tmp_user_send', 'a') as tmp_user_del:
                 tmp_user_del.write('\n' + messege.text)
-                with open('tmp_send','w') as del_write:
+                with open('tmp/tmp_send','w') as del_write:
                     del_write.write('0')
-            with open('tmp_user_send','r')as tmp_user_del:
+            with open('tmp/tmp_user_send','r')as tmp_user_del:
                 del_list = list(tmp_user_del.read().split('\n'))
             try:
                 tem_user_var = getdb(int(del_list[0]), 4)
@@ -245,25 +243,25 @@ def text_input(messege):
             tmp_list = db.all()
             for i in range(len(tmp_list)):
                 temp_ran = tmp_list[i]
-                with open('tmp_list.txt', 'a') as ttmp:
+                with open('tmp/tmp_list.txt', 'a') as ttmp:
                     user = temp_ran['userid']
                     mon = temp_ran['mon']
                     prom = temp_ran['prom']
                     username = temp_ran['username']
                     ttmp.write(f'\nИдшка.  {user} Нейм.  {username} Монетки.  {mon} Попытки.  {prom}')
-            with open('tmp_list.txt', 'rb') as last_use_tmlist:
+            with open('tmp/tmp_list.txt', 'rb') as last_use_tmlist:
                 bot.send_message(messege.chat.id,last_use_tmlist.read())
-                os.remove("tmp_list.txt")
+                os.remove("tmp/tmp_list.txt")
         elif messege.text == '💳🔨Изъять монеты':
-            with open('tmp_del', 'w') as tmp_del:
+            with open('tmp/tmp_del', 'w') as tmp_del:
                 tmp_del.write('1')
             bot.send_message(messege.chat.id,'Кинь idшку')
         elif messege.text == '📥💵Добавить монеты':
-            with open('tmp_add', 'w') as tmp_del:
+            with open('tmp/tmp_add', 'w') as tmp_del:
                 tmp_del.write('1')
                 bot.send_message(messege.chat.id,'Кинь idшку')
         elif messege.text == '📨Отправить сообщение':
-            with open('tmp_send', 'w') as tmp_del:
+            with open('tmp/tmp_send', 'w') as tmp_del:
                 tmp_del.write('1')
                 bot.send_message(messege.chat.id,'Кинь idшку')
     else:
