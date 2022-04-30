@@ -25,7 +25,7 @@ def getdb(id,arg2 = 1):
     elif arg2 == 4 :
         return new_get['username']
 
-def del_mon(id,num):
+def del_mon(id: int,num):
     db.update({'mon': getdb(id, 3) - num}, quv.userid == id)
 def add_mon(id,num):
     db.update({'mon': getdb(id, 3) + num}, quv.userid == id)
@@ -207,7 +207,12 @@ def text_input(messege):
                     del_write.write('2')
             with open('tmp_user_send', 'r') as tmp_user_del:
                 user_id_send_for_db = tmp_user_del.read()
-            bot.send_message(messege.chat.id, 'Что отправить {}?🛍'.format(getdb(user_id_send_for_db,4)))
+            try:
+                bot.send_message(messege.chat.id, 'Что отправить {}?🛍'.format(getdb(int(user_id_send_for_db),4)))
+            except:
+                bot.send_message(messege.chat.id,'Ошибонька при отправлении📭')
+                with open('tmp_send','w') as del_write:
+                    del_write.write('0')
         elif del_check == 2:
             with open('tmp_user_send', 'a') as tmp_user_del:
                 tmp_user_del.write('\n' + messege.text)
