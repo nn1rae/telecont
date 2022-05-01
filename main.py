@@ -91,9 +91,6 @@ def dice(messege):
                 db.update({'mon': getdb(messege.from_user.id, 3) + 3, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
                 bot.send_message(messege.chat.id, 'ты выиграл 3 монеты, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
             elif messege.dice.value == 5:
-                db.update({'mon': getdb(messege.from_user.id, 3) + 2, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
-                bot.send_message(messege.chat.id, 'ты выиграл 2 монеты, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
-            elif messege.dice.value == 4:
                 db.update({'mon': getdb(messege.from_user.id, 3) + 1, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
                 bot.send_message(messege.chat.id, 'ты выиграл 1 монетy, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
             else:
