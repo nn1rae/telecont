@@ -1,4 +1,5 @@
 from secrets import choice
+import time
 from telebot import types
 import random
 import telebot
@@ -64,11 +65,50 @@ def stiker(messege):
     bot.reply_to(messege, random.choice(animation_ans))
 
 
+@bot.message_handler(commands=['play'])
+def play(messege):
+    markup = types.ReplyKeyboardMarkup(row_width=2)
+    item1 = types.KeyboardButton('🎯')
+    markup.add(item1)
+    bot.send_message(messege.chat.id, """
+    *Отправь смайлик чтоб начать игру*\n
+    🎯 - Шанс выиграть 1 к 3 *Выигрыш От 1 до 3 монет*
+    🎲 - Шанс выиграть 1 к 6 *Выигрыш 6 монет*
+    """
+    , parse_mode= 'Markdown') #, reply_markup=markup)
 
+#dice games
 @bot.message_handler(content_types=['dice'])
 def dice(messege):
-    print(messege.dice)
-
+    if getdb(messege.chat.id) == 0:
+        bot.send_message(messege.chat.id,'Нельзя играть когда у тебя *0* попыток',parse_mode='Markdown')
+    else:
+        no_win_mes = ['Увы ты проиграл а промик ушел в небытие', 'Проигрыш', 'Попробуй в другой раз', 'Не сегодня', 'Можешь считать что промик потрачен в пустую', 'Повезет в другой раз']
+        print(str(messege.dice) + 'from ' + str(getdb(messege.from_user.id, 4)))
+        if messege.dice.emoji == '🎯':
+            time.sleep(2.36)
+            if messege.dice.value == 6:
+                db.update({'mon': getdb(messege.from_user.id, 3) + 3, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id, 'ты выиграл 3 монеты, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
+            elif messege.dice.value == 5:
+                db.update({'mon': getdb(messege.from_user.id, 3) + 2, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id, 'ты выиграл 2 монеты, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
+            elif messege.dice.value == 4:
+                db.update({'mon': getdb(messege.from_user.id, 3) + 1, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id, 'ты выиграл 1 монетy, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
+            else:
+                db.update({'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id, random.choice(no_win_mes))
+        elif messege.dice.emoji == '🎲':
+            time.sleep(3)
+            if messege.dice.value == 1:
+                db.update({'mon': getdb(messege.from_user.id, 3) + 6, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id, 'ты выиграл 6 монет, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
+            else:
+                db.update({'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id, random.choice(no_win_mes))
+        else:
+            bot.send_message(messege.chat.id, 'Эта игра пока что не поддерживается')
 @bot.message_handler(commands=['info'])
 def info(messege):
     mes = """
