@@ -181,6 +181,7 @@ def text_input(messege):
             rend_cal = {'🥎': 0, '⚾️': 1}
             rend = random.randrange(0,2)
             try:
+                db.update({'wait': False}, quv.userid == messege.from_user.id)
                 if rend_cal[messege.text] == rend:
                     bot.send_message(messege.chat.id,'Кросс, добавляю +1 к твоему текущему балансу🥂',reply_markup=markup)
                     db.update({'mon': getdb(messege.from_user.id, 3) + 1}, quv.userid == messege.from_user.id)
@@ -190,7 +191,6 @@ def text_input(messege):
                         bot.send_message(messege.chat.id,'Если коротко, то ты проиграл',reply_markup=markup)
                     else:
                         bot.send_message(messege.chat.id,'Ну что я могу тебе сказать, ты лох',reply_markup=markup)
-                db.update({'wait': False}, quv.userid == messege.from_user.id)
             except:
                 markup_ppl = types.ReplyKeyboardMarkup()
                 itembtn_ppl = types.KeyboardButton('⚾️')
