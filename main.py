@@ -80,7 +80,10 @@ def play(messege):
 #dice games
 @bot.message_handler(content_types=['dice'])
 def dice(messege):
-    if getdb(messege.chat.id) == 0:
+    if messege.forward_from:
+        no_forward =  ['Думал(а) самый умный(ая) а?', 'Так нельзя делать']
+        bot.send_message(messege.chat.id, random.choice(no_forward))
+    elif getdb(messege.chat.id) == 0:
         bot.send_message(messege.chat.id,'Нельзя играть когда у тебя *0* попыток',parse_mode='Markdown')
     else:
         no_win_mes = ['Увы ты проиграл а промик ушел в небытие', 'Проигрыш', 'Попробуй в другой раз', 'Не сегодня', 'Можешь считать что промик потрачен в пустую', 'Повезет в другой раз']
