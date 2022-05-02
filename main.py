@@ -1,3 +1,4 @@
+from curses.ascii import isdigit
 from secrets import choice
 import time
 from telebot import types
@@ -160,7 +161,8 @@ def menu(messege):
     itembtn1 = types.KeyboardButton('🚧Кол-во моих попыток')
     itembtn2 = types.KeyboardButton('Попытать удачу🎢')
     itembtn3 = types.KeyboardButton('Кол-во моих монет🏦')
-    markup.add(itembtn1, itembtn2, itembtn3)
+    itembtn4 = types.KeyboardButton('Монеты в попытки🪤')
+    markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
     bot.send_message(messege.chat.id,'Чего хочешь:',reply_markup=markup)
 
 
@@ -177,7 +179,8 @@ def text_input(messege):
             itembtn1 = types.KeyboardButton('🚧Кол-во моих попыток')
             itembtn2 = types.KeyboardButton('Попытать удачу🎢')
             itembtn3 = types.KeyboardButton('Кол-во моих монет🏦')
-            markup.add(itembtn1, itembtn2, itembtn3)
+            itembtn4 = types.KeyboardButton('Монеты в попытки🪤')
+            markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
             rend_cal = {'🥎': 0, '⚾️': 1}
             rend = random.randrange(0,2)
             try:
@@ -210,6 +213,13 @@ def text_input(messege):
             bot.send_message(messege.chat.id,'+1 к твоим несчастным попыткам выиграть, вот медалька за старание🥉')
     elif messege.text == '🚧Кол-во моих попыток':
         bot.send_message(messege.chat.id, f'В данный момент у тебя {getdb(messege.from_user.id)} попыток')
+    elif messege.text == 'Монеты в попытки🪤':
+        if getdb(messege.from_user.id, 3) <= 0:
+            bot.send_message(messege.chat.id,'Нельзя играть когда у тебя *0* попыток',parse_mode= 'Markdown')
+        else:
+            bot.send_message(messege.chat.id,'Курс: *1* к *1*', 'Markdown')
+            sent = bot.send_message(messege.chat.id,'Окей, сколько монет поменять?')
+            bot.register_next_step_handler(sent, how_many_change)
     elif messege.text == 'Попытать удачу🎢':
         if getdb(messege.from_user.id) > 0 :
             markup_pl = types.ReplyKeyboardMarkup()
@@ -356,7 +366,20 @@ def text_input(messege):
         else:
             not_und = ['Не пон че ты шпрехаеш', 'Я тебя не понимать блин', 'Нефига не понял, Миша давай все по новой','Мой русский не понимать твоего язык']
             bot.send_message(messege.chat.id,random.choice(not_und))
-        
+def how_many_change(messege):
+    if isdigit(messege.text):
+        try:
+            if int(getdb(messege.from_user.id, 3)) - int(messege.text) < 0:
+                bot.send_message(messege.chat.id,'Поменять больше чем есть, *нельзя*', 'Markdown')
+            else:
+                db.update({'mon': getdb(messege.from_user.id, 3) - int(messege.text), 'prom': getdb(messege.from_user.id) + int(messege.text)}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id,'Теперь у тебя Монет: {} Попыток: {}'.format(getdb(messege.from_user.id, 3), getdb(messege.from_user.id)))
+        except Exception as e:
+            bot.send_message(messege.chat.id,e)
+    else:
+        bot.send_message(messege.chat.id,'Введи число гений')
+    
+    
     
 
 bot.polling(none_stop=True)
