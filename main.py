@@ -1,5 +1,5 @@
+import code
 from curses.ascii import isdigit
-from secrets import choice
 import time
 from telebot import types
 import random
@@ -11,6 +11,7 @@ import string
 
 db = TinyDB('db.json')
 quv = Query()
+
 def new_user(id,username='none'):
     db.insert({'userid': id, 'prom': 0, 'wait': False, 'mon': 0, 'username': username})
 def getdb(id,arg2 = 1):
@@ -26,7 +27,18 @@ def getdb(id,arg2 = 1):
         return new_get['mon']
     elif arg2 == 4 :
         return new_get['username']
+def get_code_much(code):
+    code_l = db.search(quv.code == code)
+    return int(code_l[0]['much'])
 
+def del_code(code):
+    db.remove(quv.code == code)
+def check_code(code):
+    check_l = db.search(quv.code == code)
+    if not check_l:
+        return False
+    else:
+        return True
 def del_mon(id: int,num):
     db.update({'mon': getdb(id, 3) - num}, quv.userid == id)
 def add_mon(id,num):
@@ -37,6 +49,8 @@ def new_code():
     for i in range(5):
         prom_temp += random.choice(alfab)
     return prom_temp 
+
+
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
 #shity responsez
@@ -171,8 +185,8 @@ def menu(messege):
 @bot.message_handler(content_types=['text'])   
 def text_input(messege):
     print(str(messege.text) + ' |  from ' + str(messege.from_user.username))
-    with open('promos.txt', 'r') as promos:
-        check_prom_tmp = promos.read()
+    # with open('promos.txt', 'r') as promos:
+    #     check_prom_tmp = promos.read()
 
     if getdb(messege.from_user.id,2) == True:
             markup = types.ReplyKeyboardMarkup(row_width=2)
@@ -201,16 +215,11 @@ def text_input(messege):
                 markup_ppl.add(itembtn_ppl1, itembtn_ppl)
                 bot.send_message(messege.chat.id, 'Пж выбери мячик и не пиши мне пургу', reply_markup=markup_ppl)
         
-    elif messege.text in check_prom_tmp and len(messege.text) == 5:
-        new_prom = check_prom_tmp.replace(messege.text, '')
-        db.update({'prom': getdb(messege.from_user.id) + 1}, quv.userid == messege.from_user.id)
-        with open('promos.txt', 'w') as new_prom_list:
-            new_prom_list.write(new_prom)
-        rand_ans = random.randint(0,4)
-        if rand_ans >= 0 and rand_ans < 4:
-            bot.send_message(messege.chat.id,'Код заюзан, +1 к твоим попыткам🎫')
-        else:
-            bot.send_message(messege.chat.id,'+1 к твоим несчастным попыткам выиграть, вот медалька за старание🥉')
+    elif check_code(messege.text) and len(messege.text) == 5: 
+        db.update({'prom': getdb(messege.from_user.id) + get_code_much(messege.text)}, quv.userid == messege.from_user.id)
+        bot.send_message(messege.chat.id, 'Код заюзан, +{} к твоим попыткам🎫'.format(get_code_much(messege.text)))
+        del_code(messege.text)
+    
     elif messege.text == '🚧Кол-во моих попыток':
         bot.send_message(messege.chat.id, f'В данный момент у тебя {getdb(messege.from_user.id)} попыток')
     elif messege.text == 'Монеты в попытки🪤':
@@ -320,19 +329,18 @@ def text_input(messege):
             except:
                 bot.send_message(messege.chat.id,'Ошибонька при отправлении📭')
         
-
         if messege.text == '👛Новый код👛':
-            ncode = new_code()
-            with open('promos.txt', 'a') as promos:
-                promos.write('\n' + ncode)
-            with open('promos.txt', 'rb') as promos:
-                bot.send_message(messege.chat.id, f'Только что сгенерировал {ncode} ') 
+            send = bot.send_message(messege.chat.id, 'На сколько?')
+            bot.register_next_step_handler(send, new_code_after_much)
         elif messege.text == '📃Показать все коды📃':
-            with open('promos.txt', 'rb') as promosr:
-                try:
-                    bot.send_message(messege.chat.id,promosr.read())
-                except:
-                    bot.send_message(messege.chat.id,'Все коды украл валера')
+            code_list = db.search(quv.type == 'code')
+            if not code_list:
+                bot.send_message(messege.chat.id,'Кодов больше нет👨‍🦯👨‍🦯')
+            else:
+                code_str = ''
+                for i in range(len(code_list)):
+                    code_str += 'Код {} Дает {}\n'.format(code_list[i]['code'],code_list[i]['much'])
+                bot.send_message(messege.chat.id, code_str)        
         elif messege.text == '🧁Информация о пользователях🧁':
             tmp_list = db.all()
             for i in range(len(tmp_list)):
@@ -378,8 +386,12 @@ def how_many_change(messege):
             bot.send_message(messege.chat.id,e)
     else:
         bot.send_message(messege.chat.id,'Введи число гений')
-    
-    
-    
 
+def new_code_after_much(messege):
+    ncode = new_code()
+    try:
+        db.insert({'code': ncode, 'much': int(messege.text), 'type': 'code'})
+        bot.send_message(messege.chat.id, f'Новый код {ncode} : {messege.text}')
+    except Exception as e:
+        bot.send_message(messege.chat.id, e)
 bot.polling(none_stop=True)
