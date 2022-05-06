@@ -1,1 +1,32 @@
-{"_default": {"1": {"userid": 999711677, "prom": 3033, "wait": false, "mon": 0, "username": "nn1rae"}, "2": {"userid": 1688938654, "prom": 10, "wait": false, "mon": 0, "username": "LittleChubirlo"}, "3": {"userid": 5359780461, "prom": 0, "wait": false, "mon": 2, "username": "Iliya"}, "4": {"userid": 842583235, "prom": 4, "wait": false, "mon": -69, "username": "shhxtai"}, "7": {"code": "3EEFR", "much": 2, "type": "code"}, "9": {"code": "PII7A", "much": 2, "type": "code"}, "10": {"code": "4ZW7S", "much": 1, "type": "code"}, "11": {"code": "3VD74", "much": 1, "type": "code"}, "12": {"code": "10C65", "much": 1, "type": "code"}, "13": {"code": "N9QOH", "much": 1, "type": "code"}}}
+{
+    "_default": {
+        "1": {
+            "userid": 999711677,
+            "prom": 3033,
+            "wait": false,
+            "mon": 0,
+            "username": "nn1rae"
+        },
+        "2": {
+            "userid": 1688938654,
+            "prom": 10,
+            "wait": false,
+            "mon": 0,
+            "username": "LittleChubirlo"
+        },
+        "3": {
+            "userid": 5359780461,
+            "prom": 0,
+            "wait": false,
+            "mon": 2,
+            "username": "Iliya"
+        },
+        "4": {
+            "userid": 842583235,
+            "prom": 4,
+            "wait": false,
+            "mon": -69,
+            "username": "shhxtai"
+        }
+    }
+}
