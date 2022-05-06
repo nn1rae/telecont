@@ -78,8 +78,25 @@ def stiker(messege):
 def stiker(messege):
     animation_ans = ['Не грузит, это что-то важное?', 'У-у-у-у-у 🐒', 'Эмз, потому что только у нее есть телефон', '🙋‍♂️', 'Ульяна, вы?🧐']
     bot.reply_to(messege, random.choice(animation_ans))
+@bot.message_handler(commands=['kill_codes'])
+def kill_codes(messege):
+    if messege.from_user.id == 999711677:
+        much_codes_remove = len(db.search(quv.type == 'code'))
+        db.remove(quv.type == 'code')
+        bot.send_message(messege.chat.id, f'Удачно удалил {much_codes_remove} кодов')
 
 
+@bot.message_handler(commands=['check_prom'])
+def check_prom(messege):
+    sent = bot.send_message(messege.chat.id, 'Введи промокод')
+    bot.register_next_step_handler(sent, check_prom_hand)
+
+def check_prom_hand(messege):
+    prom_list = db.search(quv.code == messege.text)
+    if not prom_list:
+        bot.send_message(messege.chat.id, 'Промокод не найден')
+    else:
+        bot.send_message(messege.chat.id, 'Этот промокод на {} попыток'.format(prom_list[0]['much']))
 @bot.message_handler(commands=['play'])
 def play(messege):
     markup = types.ReplyKeyboardMarkup(row_width=2)
@@ -330,7 +347,7 @@ def text_input(messege):
                 bot.send_message(messege.chat.id,'Ошибонька при отправлении📭')
         
         if messege.text == '👛Новый код👛':
-            send = bot.send_message(messege.chat.id, 'На сколько?')
+            send = bot.send_message(messege.chat.id, 'Количество')
             bot.register_next_step_handler(send, new_code_after_much)
         elif messege.text == '📃Показать все коды📃':
             code_list = db.search(quv.type == 'code')
@@ -386,12 +403,19 @@ def how_many_change(messege):
             bot.send_message(messege.chat.id,e)
     else:
         bot.send_message(messege.chat.id,'Введи число гений')
-
+much_prom_temp = 1
 def new_code_after_much(messege):
-    ncode = new_code()
+    global much_prom_temp 
+    much_prom_temp = int(messege.text)
+    sent = bot.send_message(messege.chat.id, 'На сколько?')
+    bot.register_next_step_handler(sent, new_code_after_cost)
+def new_code_after_cost(messege):
     try:
-        db.insert({'code': ncode, 'much': int(messege.text), 'type': 'code'})
-        bot.send_message(messege.chat.id, f'Новый код {ncode} : {messege.text}')
+        for i in range(much_prom_temp):
+            ncode = new_code()
+            db.insert({'code': ncode, 'much': int(messege.text), 'type': 'code'})
+            bot.send_message(messege.chat.id, f'Новый код {ncode} : {messege.text}')
     except Exception as e:
         bot.send_message(messege.chat.id, e)
+
 bot.polling(none_stop=True)
