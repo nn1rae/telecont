@@ -8,12 +8,13 @@ from tinydb import TinyDB, Query
 import os
 import string
 
+bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
 db = TinyDB('db.json')
 quv = Query()
 
 def new_user(id,username='none'):
-    db.insert({'userid': id, 'prom': 0, 'wait': False, 'mon': 0, 'username': username})
+    db.insert({'userid': id, 'prom': 0, 'wait': False, 'mon': 0, 'username': username,'next_win': False, 'type': 'user'})
 def getdb(id,arg2 = 1):
     get0 = db.search(quv.userid == id)
     new_get = get0[0]
@@ -49,10 +50,18 @@ def new_code():
     for i in range(5):
         prom_temp += random.choice(alfab)
     return prom_temp 
+def next_win(id,ans):
+    if ans == 1:
+        db.update({'next_win': True}, quv.userid == id)
+    elif ans == 0:
+        db.update({'next_win': False}, quv.userid == id)
 
-
-bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
-
+def next_win_check(id:int):
+    list = db.search(quv.userid == id)
+    if not list:
+        return False
+    elif list[0]['next_win'] == True :
+        return True
 #shity responsez
 @bot.message_handler(func=lambda messege: True ,content_types=["sticker"]) 
 def stiker(messege):
@@ -85,6 +94,17 @@ def kill_codes(messege):
         db.remove(quv.type == 'code')
         bot.send_message(messege.chat.id, f'Удачно удалил {much_codes_remove} кодов')
 
+@bot.message_handler(commands=['next_win'])
+def next_win_hand(messege):
+    if messege.from_user.id == 999711677:
+        sent = bot.send_message(messege.chat.id, 'id')
+        bot.register_next_step_handler(sent, next_win_get)
+def next_win_get(messege):
+    try:
+        next_win(int(messege.text), 1)
+        bot.send_message(messege.chat.id, 'Успешно по отношению к {}'.format(getdb(int(messege.text),4)))
+    except Exception as e:
+        bot.send_message(messege.chat.id, e)
 
 @bot.message_handler(commands=['check_prom'])
 def check_prom(messege):
@@ -97,6 +117,12 @@ def check_prom_hand(messege):
         bot.send_message(messege.chat.id, 'Промокод не найден')
     else:
         bot.send_message(messege.chat.id, 'Этот промокод на {} попыток'.format(prom_list[0]['much']))
+@bot.message_handler(commands=['la'])
+def la(messege):
+    mes = "/kill_codes - Удалить все коды \n/next_win - В след раз игрок точно выиграет"
+    if messege.from_user.id == 999711677:
+        bot.send_message(messege.chat.id,mes)
+
 @bot.message_handler(commands=['play'])
 def play(messege):
     markup = types.ReplyKeyboardMarkup(row_width=2)
@@ -122,8 +148,9 @@ def dice(messege):
         print(str(messege.dice) + 'from ' + str(getdb(messege.from_user.id, 4)))
         if messege.dice.emoji == '🎯':
             time.sleep(2.36)
-            if messege.dice.value == 6:
+            if messege.dice.value == 6 or next_win_check(messege.from_user.id):
                 db.update({'mon': getdb(messege.from_user.id, 3) + 3, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                next_win(messege.from_user.id, 0)
                 bot.send_message(messege.chat.id, 'ты выиграл 3 монеты, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
             elif messege.dice.value == 5:
                 db.update({'mon': getdb(messege.from_user.id, 3) + 1, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
@@ -133,8 +160,9 @@ def dice(messege):
                 bot.send_message(messege.chat.id, random.choice(no_win_mes))
         elif messege.dice.emoji == '🎲':
             time.sleep(3)
-            if messege.dice.value == 1:
+            if messege.dice.value == 1 or next_win_check(messege.from_user.id):
                 db.update({'mon': getdb(messege.from_user.id, 3) + 6, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                next_win(messege.from_user.id, 0)
                 bot.send_message(messege.chat.id, 'ты выиграл 6 монет, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
             else:
                 db.update({'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
@@ -202,9 +230,6 @@ def menu(messege):
 @bot.message_handler(content_types=['text'])   
 def text_input(messege):
     print(str(messege.text) + ' |  from ' + str(messege.from_user.username))
-    # with open('promos.txt', 'r') as promos:
-    #     check_prom_tmp = promos.read()
-
     if getdb(messege.from_user.id,2) == True:
             markup = types.ReplyKeyboardMarkup(row_width=2)
             itembtn1 = types.KeyboardButton('🚧Кол-во моих попыток')
@@ -216,9 +241,10 @@ def text_input(messege):
             rend = random.randrange(0,2)
             try:
                 db.update({'wait': False}, quv.userid == messege.from_user.id)
-                if rend_cal[messege.text] == rend:
-                    bot.send_message(messege.chat.id,'Кросс, добавляю +1 к твоему текущему балансу🥂',reply_markup=markup)
+                if rend_cal[messege.text] == rend or next_win_check(messege.from_user.id):
                     db.update({'mon': getdb(messege.from_user.id, 3) + 1}, quv.userid == messege.from_user.id)
+                    next_win(messege.from_user.id, 0)
+                    bot.send_message(messege.chat.id,'Кросс, добавляю +1 к твоему текущему балансу🥂',reply_markup=markup)
                 else:
                     rand_ans = random.randint(0,4)
                     if rand_ans >= 0 and rand_ans < 4:
@@ -359,7 +385,7 @@ def text_input(messege):
                     code_str += 'Код {} Дает {}\n'.format(code_list[i]['code'],code_list[i]['much'])
                 bot.send_message(messege.chat.id, code_str)        
         elif messege.text == '🧁Информация о пользователях🧁':
-            tmp_list = db.all()
+            tmp_list = db.search(quv.type == 'user')
             for i in range(len(tmp_list)):
                 temp_ran = tmp_list[i]
                 with open('tmp/tmp_list.txt', 'a') as ttmp:
@@ -417,5 +443,4 @@ def new_code_after_cost(messege):
             bot.send_message(messege.chat.id, f'Новый код {ncode} : {messege.text}')
     except Exception as e:
         bot.send_message(messege.chat.id, e)
-
 bot.polling(none_stop=True)
