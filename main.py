@@ -7,6 +7,18 @@ import telebot
 from tinydb import TinyDB, Query
 import os
 import string
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw 
+
+def code_to_text(code: str, code_much: str):
+    img = Image.open("pic/grad.png")
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype('Lato.ttf', 250)
+    font2 = ImageFont.truetype('Lato.ttf', 200)
+    draw.text((440, 460),code,(155,46,106),font=font) 
+    draw.text((1560, 940),code_much,(255,255,255),font=font2)
+    img.save('pic/out.png')
 
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
@@ -119,9 +131,19 @@ def check_prom_hand(messege):
         bot.send_message(messege.chat.id, 'Этот промокод на {} попыток'.format(prom_list[0]['much']))
 @bot.message_handler(commands=['la'])
 def la(messege):
-    mes = "/kill_codes - Удалить все коды \n/next_win - В след раз игрок точно выиграет"
+    mes = "/kill_codes - Удалить все коды \n/next_win - В след раз игрок точно выиграет \n/code_to_text - Версия кода в картинке"
     if messege.from_user.id == 999711677:
         bot.send_message(messege.chat.id,mes)
+
+@bot.message_handler(commands=['code_to_text'])
+def ctt(messege):
+    if messege.from_user.id == 999711677:
+        sent =  bot.send_message(messege.chat.id,'Код:')
+        bot.register_next_step_handler(sent, ctth)
+def ctth(messege):
+    code_to_text(messege.text, str(get_code_much(messege.text)))
+    with open('pic/out.png', 'rb') as out_pic:
+        bot.send_photo(messege.chat.id, out_pic)
 
 @bot.message_handler(commands=['play'])
 def play(messege):
@@ -440,7 +462,11 @@ def new_code_after_cost(messege):
         for i in range(much_prom_temp):
             ncode = new_code()
             db.insert({'code': ncode, 'much': int(messege.text), 'type': 'code'})
+            code_to_text(str(ncode), messege.text)
+            with open('pic/out.png', 'rb') as img_send:
+                bot.send_photo(messege.chat.id, img_send)
             bot.send_message(messege.chat.id, f'Новый код {ncode} : {messege.text}')
+
     except Exception as e:
         bot.send_message(messege.chat.id, e)
 bot.polling(none_stop=True)
