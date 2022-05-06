@@ -1,4 +1,3 @@
-import code
 from curses.ascii import isdigit
 import time
 from telebot import types
@@ -10,23 +9,33 @@ import string
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw 
-
-def code_to_text(code: str, code_much: str):
-    img = Image.open("pic/grad.png")
-    draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype('Lato.ttf', 250)
-    font2 = ImageFont.truetype('Lato.ttf', 200)
-    draw.text((440, 460),code,(155,46,106),font=font) 
-    draw.text((1560, 940),code_much,(255,255,255),font=font2)
-    img.save('pic/out.png')
+import easyocr
 
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
 db = TinyDB('db.json')
 quv = Query()
 
+def get_code_from_img(imP: str):
+    reader = easyocr.Reader(['en'], gpu=False)
+    result = reader.readtext(imP)
+    if not result:
+        return ''
+    else:
+        return result[0][1]
+
+def code_to_text(code: str, code_much: str):
+    img = Image.open("pic/grad.png")
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype('Lato.ttf', 250)
+    font2 = ImageFont.truetype('Lato.ttf', 200)
+    draw.text((440, 460),code,(255,255,255),font=font) 
+    draw.text((1560, 940),code_much,(255,255,255),font=font2)
+    img.save('pic/out.png')
+
 def new_user(id,username='none'):
     db.insert({'userid': id, 'prom': 0, 'wait': False, 'mon': 0, 'username': username,'next_win': False, 'type': 'user'})
+
 def getdb(id,arg2 = 1):
     get0 = db.search(quv.userid == id)
     new_get = get0[0]
@@ -40,7 +49,7 @@ def getdb(id,arg2 = 1):
         return new_get['mon']
     elif arg2 == 4 :
         return new_get['username']
-def get_code_much(code):
+def get_code_much(code: str):
     code_l = db.search(quv.code == code)
     return int(code_l[0]['much'])
 
@@ -81,22 +90,43 @@ def stiker(messege):
     bot.reply_to(messege, random.choice(sticker_ans))
 
 @bot.message_handler(func=lambda messege: True ,content_types=["photo"])
-def stiker(messege):
-    photo_ans = ['Ладно', '🤨📸', 'За такое в некоторых странах сажают...', 'Это не план захвата Польши.', 'План захвата Польши?!?!?!', 'Пожалуй это я сохраню']
-    bot.reply_to(messege, random.choice(photo_ans))
+def photo(messege):
+    #photo_ans = ['Ладно', '🤨📸', 'За такое в некоторых странах сажают...', 'Это не план захвата Польши.', 'План захвата Польши?!?!?!', 'Пожалуй это я сохраню']
+    raw = messege.photo[2].file_id
+    path = raw+".png"
+    file_info = bot.get_file(raw)
+    downloaded_file = bot.download_file(file_info.file_path)
+    with open(path,'wb') as new_file:
+        new_file.write(downloaded_file)
+    code = get_code_from_img(path)
+    print(code)
+    if check_code(code):
+        db.update({'prom': getdb(messege.from_user.id) + get_code_much(code)}, quv.userid == messege.from_user.id)
+        bot.send_message(messege.chat.id, 'Код заюзан, +{} к твоим попыткам🎫'.format(get_code_much(code)))
+        del_code(code)
+    else:
+        bot.reply_to(messege, """Код не использован по одной из причин:
+1. Это не кодКарточка
+2. Код не действителен 
+3. Код не удалось распознать
+============================
+Попробуй ввести код в ручную либо проверь код /check_prom""")
+    os.remove(path)
+
+
 
 @bot.message_handler(func=lambda messege: True ,content_types=["voice", "audio"])
-def stiker(messege):
+def voice(messege):
     audio_ans = ['Ну ок и что?', 'Что за стоны','Ты там не разборчиво говоришь да и мне пофиг', 'Зачем мне по твоему это?', 'Хз']
     bot.reply_to(messege, random.choice(audio_ans))
 
 @bot.message_handler(func=lambda messege: True ,content_types=["video"])
-def stiker(messege):
+def video(messege):
     video_ans = ['Я планирую польшу захватывать, это мне не поможет.', 'Илон маск покупает это видео', 'Ничего гениальнее я ещё не видел', '🦽?', 'Если бы я был живим то вызвал бы копов👨‍🦯']
     bot.reply_to(messege, random.choice(video_ans))
 
 @bot.message_handler(func=lambda messege: True ,content_types=["animation"]) 
-def stiker(messege):
+def gif(messege):
     animation_ans = ['Не грузит, это что-то важное?', 'У-у-у-у-у 🐒', 'Эмз, потому что только у нее есть телефон', '🙋‍♂️', 'Ульяна, вы?🧐']
     bot.reply_to(messege, random.choice(animation_ans))
 @bot.message_handler(commands=['kill_codes'])
