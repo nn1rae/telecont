@@ -1,4 +1,3 @@
-from curses.ascii import isdigit
 import time
 from telebot import types
 import random
@@ -183,7 +182,13 @@ def play(messege):
     bot.send_message(messege.chat.id, """
     *Отправь смайлик чтоб начать игру*\n
     🎯 - Шанс выиграть 1 к 3 *Выигрыш От 1 до 3 монет*
+
     🎲 - Шанс выиграть 1 к 6 *Выигрыш 6 монет*
+
+    🎳 - Шанс выиграть 1 к 3 *Выигрыш От 1 до 3 монет*
+
+    🏀 - Шанс выиграть 2 к 5 *Выигрыш 2 монеты*
+    
     """
     , parse_mode= 'Markdown') #, reply_markup=markup)
 
@@ -216,6 +221,27 @@ def dice(messege):
                 db.update({'mon': getdb(messege.from_user.id, 3) + 6, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
                 next_win(messege.from_user.id, 0)
                 bot.send_message(messege.chat.id, 'ты выиграл 6 монет, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
+            else:
+                db.update({'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id, random.choice(no_win_mes))
+        elif messege.dice.emoji == '🎳':
+            time.sleep(4)
+            if messege.dice.value == 6 or next_win_check(messege.from_user.id):
+                db.update({'mon': getdb(messege.from_user.id, 3) + 3, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                next_win(messege.from_user.id, 0)
+                bot.send_message(messege.chat.id, 'ты выиграл 3 монеты, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
+            elif messege.dice.value == 5:
+                db.update({'mon': getdb(messege.from_user.id, 3) + 1, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id, 'ты выиграл 1 монетy, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
+            else:
+                db.update({'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                bot.send_message(messege.chat.id, random.choice(no_win_mes))
+        elif messege.dice.emoji == '🏀':
+            time.sleep(4)
+            if messege.dice.value == 4 or messege.dice.value == 5 or next_win_check(messege.from_user.id):
+                db.update({'mon': getdb(messege.from_user.id, 3) + 2, 'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
+                next_win(messege.from_user.id, 0)
+                bot.send_message(messege.chat.id, 'ты выиграл 2 монеты, теперь у тебя *{}* монет'.format(getdb(messege.from_user.id,3)),parse_mode='Markdown')
             else:
                 db.update({'prom': getdb(messege.from_user.id) - 1}, quv.userid == messege.from_user.id)
                 bot.send_message(messege.chat.id, random.choice(no_win_mes))
@@ -470,17 +496,14 @@ def text_input(messege):
             not_und = ['Не пон че ты шпрехаеш', 'Я тебя не понимать блин', 'Нефига не понял, Миша давай все по новой','Мой русский не понимать твоего язык']
             bot.send_message(messege.chat.id,random.choice(not_und))
 def how_many_change(messege):
-    if isdigit(messege.text):
-        try:
-            if int(getdb(messege.from_user.id, 3)) - int(messege.text) < 0:
-                bot.send_message(messege.chat.id,'Поменять больше чем есть, *нельзя*', 'Markdown')
-            else:
-                db.update({'mon': getdb(messege.from_user.id, 3) - int(messege.text), 'prom': getdb(messege.from_user.id) + int(messege.text)}, quv.userid == messege.from_user.id)
-                bot.send_message(messege.chat.id,'Теперь у тебя Монет: {} Попыток: {}'.format(getdb(messege.from_user.id, 3), getdb(messege.from_user.id)))
-        except Exception as e:
-            bot.send_message(messege.chat.id,e)
-    else:
-        bot.send_message(messege.chat.id,'Введи число гений')
+    try:
+        if int(getdb(messege.from_user.id, 3)) - int(messege.text) < 0:
+            bot.send_message(messege.chat.id,'Поменять больше чем есть, *нельзя*', 'Markdown')
+        else:
+            db.update({'mon': getdb(messege.from_user.id, 3) - int(messege.text), 'prom': getdb(messege.from_user.id) + int(messege.text)}, quv.userid == messege.from_user.id)
+            bot.send_message(messege.chat.id,'Теперь у тебя Монет: {} Попыток: {}'.format(getdb(messege.from_user.id, 3), getdb(messege.from_user.id)))
+    except Exception:
+        bot.send_message(messege.chat.id,'Упс что то пошло не так🫢')
 much_prom_temp = 1
 def new_code_after_much(messege):
     global much_prom_temp 
