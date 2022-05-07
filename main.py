@@ -10,11 +10,17 @@ from PIL import ImageFont
 from PIL import ImageDraw 
 import easyocr
 from termcolor import colored
+import qrcode
+
 
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
 db = TinyDB('../db.json')
 quv = Query()
+
+def code_to_qr(code):
+    img = qrcode.make(f'tg://msg_url?url={code}')
+    img.save("pic/qr.png")
 
 def log(messege):
     match messege.content_type:
@@ -144,6 +150,16 @@ def kill_codes(messege):
         db.remove(quv.type == 'code')
         bot.send_message(messege.chat.id, f'Удачно удалил {much_codes_remove} кодов')
 
+@bot.message_handler(commands=['code_to_qr'])
+def code_to_qr_f(messege):
+    if messege.from_user.id == 999711677:
+        sent = bot.send_message(messege.chat.id, 'Напиши код 👩🏻‍🦰')
+        bot.register_next_step_handler(sent, ctqwhand)
+def ctqwhand(messege):
+    code_to_qr(messege.text)
+    with open('pic/qr.png', 'rb') as qr:
+        bot.send_photo(messege.chat.id, qr)
+
 @bot.message_handler(commands=['next_win'])
 def next_win_hand(messege):
     if messege.from_user.id == 999711677:
@@ -169,7 +185,7 @@ def check_prom_hand(messege):
         bot.send_message(messege.chat.id, 'Этот промокод на {} попыток'.format(prom_list[0]['much']))
 @bot.message_handler(commands=['la'])
 def la(messege):
-    mes = "/kill_codes - Удалить все коды \n/next_win - В след раз игрок точно выиграет \n/code_to_text - Версия кода в картинке"
+    mes = "/kill_codes - Удалить все коды \n/next_win - В след раз игрок точно выиграет \n/code_to_text - Версия кода в картинке\n/code_to_qr - Код в QR.code"
     if messege.from_user.id == 999711677:
         bot.send_message(messege.chat.id,mes)
 
