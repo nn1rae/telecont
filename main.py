@@ -280,7 +280,7 @@ def info(messege):
     Бот создан на языке Python3
     Просто по рофлу 
     *____________________________*
-    Версия *0.2*
+    Версия *0.5*
     
     Создатель *Klesberg*
     """
@@ -325,7 +325,8 @@ def menu(messege):
     itembtn2 = types.KeyboardButton('Попытать удачу🎢')
     itembtn3 = types.KeyboardButton('Кол-во моих монет🏦')
     itembtn4 = types.KeyboardButton('Монеты в попытки🪤')
-    markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
+    itembtn5 = types.KeyboardButton('Отправить код/ы ☕️')
+    markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5)
     bot.send_message(messege.chat.id,'Чего хочешь:',reply_markup=markup)
 
 
@@ -341,7 +342,8 @@ def text_input(messege):
             itembtn2 = types.KeyboardButton('Попытать удачу🎢')
             itembtn3 = types.KeyboardButton('Кол-во моих монет🏦')
             itembtn4 = types.KeyboardButton('Монеты в попытки🪤')
-            markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
+            itembtn5 = types.KeyboardButton('Отправить код/ы ☕️')
+            markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5)
             rend_cal = {'🥎': 0, '⚾️': 1}
             rend = random.randrange(0,2)
             try:
@@ -396,7 +398,18 @@ def text_input(messege):
             bot.send_message(messege.chat.id,f'У тебя {getdb(messege.from_user.id, 3)} монет, ну ты и бомж конечно.')
         else:
             bot.send_message(messege.chat.id,f'У тебя {getdb(messege.from_user.id, 3)} монет, ШИКУЕМ 🥁🎉🎉.')
-            
+    elif messege.text == 'Отправить код/ы ☕️':
+        if getdb(messege.from_user.id) <= 0:
+            bot.send_message(messege.chat.id, '🫧Нельзя отправлять попытки когда у тебя баланс на нуле🫧')
+        else:
+            user_db = db.search(quv.type == 'user')
+            user_list = ''
+            for i in range(len(user_db)):
+                user_list += str(user_db[i]['username']) + '\n'
+            sent = bot.send_message(messege.chat.id, 'Кому 🍯')
+            bot.register_next_step_handler(sent, who_to_sent_code)
+            bot.send_message(messege.chat.id, user_list)
+        
     #admin pan inside
     elif messege.from_user.id == 999711677:
         with open('tmp/tmp_del', 'r') as del_check:
@@ -549,4 +562,37 @@ def new_code_after_cost(messege):
 
     except Exception as e:
         bot.send_message(messege.chat.id, e)
+name_to_send_code = ''
+def who_to_sent_code(messege):
+    if getdb(messege.from_user.id) <= 0:
+        bot.send_message(messege.chat.id, '🫧Нельзя отправлять попытки когда у тебя баланс на нуле🫧')
+    else:
+        global name_to_send_code
+        name_to_send_code = messege.text
+        name = db.search(quv.username == name_to_send_code)
+        try:
+            sent = bot.send_message(messege.chat.id, 'Сколько отправить {}🍻'.format(name[0]['username']))
+            bot.register_next_step_handler(sent, how_much_code_sent)
+        except Exception:
+            bot.send_message(messege.chat.id,'Такого имени не существует 🥤')
+
+def how_much_code_sent(messege):
+    global name_to_send_code
+    if int(messege.text) < 0:
+        bot.send_message(messege.chat.id, 'Такой трюк не прокатит🚔')
+    else:
+        try:
+            id_user = db.search(quv.username == name_to_send_code)
+            if getdb(messege.from_user.id) - int(messege.text) >= 0:
+                db.update({'prom': getdb(messege.from_user.id) - int(messege.text)}, quv.userid == int(messege.from_user.id))
+                db.update({'prom': getdb(id_user[0]['userid']) + int(messege.text)}, quv.username == name_to_send_code)
+                bot.send_message(messege.chat.id, 'Успешно перечислил {} {} 🥣'.format(name_to_send_code, messege.text))
+                bot.send_message(id_user[0]['userid'], 'Вам пришло {} попыток от {}🧁'.format(messege.text, getdb(messege.from_user.id,4)))
+            else:
+                bot.send_message(messege.chat.id, '🫧Нельзя отправлять попытки когда у тебя баланс на нуле🫧')
+        except:
+            bot.send_message(messege.chat.id, 'Ошибка при отправке🍪🥛')
+
+
+
 bot.polling(none_stop=True)
