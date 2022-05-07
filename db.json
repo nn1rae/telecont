@@ -1,1 +1,56 @@
-{"_default": {"1": {"userid": 999711677, "prom": 68, "wait": false, "mon": 18, "username": "nn1rae", "next_win": false, "type": "user"}, "3": {"code": "21H3O", "much": 1, "type": "code"}, "4": {"code": "0IQXY", "much": 1, "type": "code"}, "5": {"code": "BEX6E", "much": 1, "type": "code"}, "6": {"code": "9LYJX", "much": 1, "type": "code"}, "7": {"code": "SIJVW", "much": 1, "type": "code"}, "9": {"userid": 1688938654, "prom": 0, "wait": false, "mon": 0, "username": "LittleChubirlo", "next_win": false, "type": "user"}, "10": {"userid": 5359780461, "prom": 0, "wait": false, "mon": 0, "username": null, "next_win": false, "type": "user"}}}
+{
+    "_default": {
+        "1": {
+            "userid": 999711677,
+            "prom": 68,
+            "wait": false,
+            "mon": 18,
+            "username": "nn1rae",
+            "next_win": false,
+            "type": "user"
+        },
+        "3": {
+            "code": "21H3O",
+            "much": 1,
+            "type": "code"
+        },
+        "4": {
+            "code": "0IQXY",
+            "much": 1,
+            "type": "code"
+        },
+        "5": {
+            "code": "BEX6E",
+            "much": 1,
+            "type": "code"
+        },
+        "6": {
+            "code": "9LYJX",
+            "much": 1,
+            "type": "code"
+        },
+        "7": {
+            "code": "SIJVW",
+            "much": 1,
+            "type": "code"
+        },
+        "9": {
+            "userid": 1688938654,
+            "prom": 1,
+            "wait": false,
+            "mon": 8,
+            "username": "LittleChubirlo",
+            "next_win": false,
+            "type": "user"
+        },
+        "10": {
+            "userid": 5359780461,
+            "prom": 0,
+            "wait": false,
+            "mon": 2,
+            "username": "Iliya",
+            "next_win": false,
+            "type": "user"
+        }
+    }
+}
