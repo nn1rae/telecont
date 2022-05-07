@@ -13,7 +13,7 @@ from termcolor import colored
 
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
-db = TinyDB('db.json')
+db = TinyDB('../db.json')
 quv = Query()
 
 def log(messege):
