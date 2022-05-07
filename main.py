@@ -9,11 +9,20 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw 
 import easyocr
+from termcolor import colored
 
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 
 db = TinyDB('db.json')
 quv = Query()
+
+def log(messege):
+    match messege.content_type:
+        case 'dice':
+            print(colored('[user {}] '.format(getdb(messege.from_user.id, 4)), 'red') + 'Em : {}| Result {}'.format(str(messege.dice.emoji), str(messege.dice.value)))
+        case 'text':
+            print(colored('[user {}] '.format(getdb(messege.from_user.id, 4)), 'red') + colored(messege.text, 'blue'))
+
 
 def get_code_from_img(imP: str):
     reader = easyocr.Reader(['en'], gpu=False)
@@ -202,7 +211,8 @@ def dice(messege):
         bot.send_message(messege.chat.id,'Нельзя играть когда у тебя *0* попыток',parse_mode='Markdown')
     else:
         no_win_mes = ['Увы ты проиграл а промик ушел в небытие', 'Проигрыш', 'Попробуй в другой раз', 'Не сегодня', 'Можешь считать что промик потрачен в пустую', 'Повезет в другой раз']
-        print(str(messege.dice) + 'from ' + str(getdb(messege.from_user.id, 4)))
+        log(messege)
+        #print(str(messege.dice) + 'from ' + str(getdb(messege.from_user.id, 4)))
         if messege.dice.emoji == '🎯':
             time.sleep(2.36)
             if messege.dice.value == 6 or next_win_check(messege.from_user.id):
@@ -307,7 +317,8 @@ def menu(messege):
 #text handler
 @bot.message_handler(content_types=['text'])   
 def text_input(messege):
-    print(str(messege.text) + ' |  from ' + str(messege.from_user.username))
+    log(messege)
+    #print(str(messege.text) + ' |  from ' + str(messege.from_user.username))
     if getdb(messege.from_user.id,2) == True:
             markup = types.ReplyKeyboardMarkup(row_width=2)
             itembtn1 = types.KeyboardButton('🚧Кол-во моих попыток')
