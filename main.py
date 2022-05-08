@@ -14,6 +14,7 @@ import qrcode
 
 
 bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
+admin_list = [999711677]
 
 db = TinyDB('../db.json')
 quv = Query()
@@ -36,7 +37,8 @@ def get_code_from_img(imP: str):
     if not result:
         return ''
     else:
-        return result[0][1]
+        result = result[0][1].replace("O","0")
+        return result
 
 def code_to_text(code: str, code_much: str):
     img = Image.open("pic/grad.png")
@@ -82,6 +84,7 @@ def add_mon(id,num):
 def new_code():
     prom_temp = ''
     alfab = string.ascii_uppercase + string.digits
+    alfab = alfab.replace("O", "")
     for i in range(5):
         prom_temp += random.choice(alfab)
     return prom_temp 
@@ -145,14 +148,16 @@ def gif(messege):
     bot.reply_to(messege, random.choice(animation_ans))
 @bot.message_handler(commands=['kill_codes'])
 def kill_codes(messege):
-    if messege.from_user.id == 999711677:
+    global admin_list
+    if messege.from_user.id in admin_list:
         much_codes_remove = len(db.search(quv.type == 'code'))
         db.remove(quv.type == 'code')
         bot.send_message(messege.chat.id, f'Удачно удалил {much_codes_remove} кодов')
 
 @bot.message_handler(commands=['code_to_qr'])
 def code_to_qr_f(messege):
-    if messege.from_user.id == 999711677:
+    global admin_list
+    if messege.from_user.id in admin_list:
         sent = bot.send_message(messege.chat.id, 'Напиши код 👩🏻‍🦰')
         bot.register_next_step_handler(sent, ctqwhand)
 def ctqwhand(messege):
@@ -162,7 +167,8 @@ def ctqwhand(messege):
 
 @bot.message_handler(commands=['next_win'])
 def next_win_hand(messege):
-    if messege.from_user.id == 999711677:
+    global admin_list
+    if messege.from_user.id in admin_list:
         sent = bot.send_message(messege.chat.id, 'id')
         bot.register_next_step_handler(sent, next_win_get)
 def next_win_get(messege):
@@ -186,19 +192,23 @@ def check_prom_hand(messege):
 @bot.message_handler(commands=['la'])
 def la(messege):
     mes = "/kill_codes - Удалить все коды \n/next_win - В след раз игрок точно выиграет \n/code_to_text - Версия кода в картинке\n/code_to_qr - Код в QR.code"
-    if messege.from_user.id == 999711677:
+    global admin_list
+    if messege.from_user.id in admin_list:
         bot.send_message(messege.chat.id,mes)
 
 @bot.message_handler(commands=['code_to_text'])
 def ctt(messege):
-    if messege.from_user.id == 999711677:
+    global admin_list
+    if messege.from_user.id in admin_list:
         sent =  bot.send_message(messege.chat.id,'Код:')
         bot.register_next_step_handler(sent, ctth)
 def ctth(messege):
-    code_to_text(messege.text, str(get_code_much(messege.text)))
-    with open('pic/out.png', 'rb') as out_pic:
-        bot.send_photo(messege.chat.id, out_pic)
-
+    try:
+        code_to_text(messege.text, str(get_code_much(messege.text)))
+        with open('pic/out.png', 'rb') as out_pic:
+            bot.send_photo(messege.chat.id, out_pic)
+    except Exception:
+        bot.send_message(messege.chat.id, 'Код не найден🌩')
 @bot.message_handler(commands=['play'])
 def play(messege):
     markup = types.ReplyKeyboardMarkup(row_width=2)
@@ -215,7 +225,7 @@ def play(messege):
     🏀 - Шанс выиграть 2 к 5 *Выигрыш 2 монеты*
     
     """
-    , parse_mode= 'Markdown') #, reply_markup=markup)
+    , parse_mode= 'Markdown')
 
 #dice games
 @bot.message_handler(content_types=['dice'])
@@ -228,7 +238,6 @@ def dice(messege):
     else:
         no_win_mes = ['Увы ты проиграл а промик ушел в небытие', 'Проигрыш', 'Попробуй в другой раз', 'Не сегодня', 'Можешь считать что промик потрачен в пустую', 'Повезет в другой раз']
         log(messege)
-        #print(str(messege.dice) + 'from ' + str(getdb(messege.from_user.id, 4)))
         if messege.dice.emoji == '🎯':
             time.sleep(2.36)
             if messege.dice.value == 6 or next_win_check(messege.from_user.id):
@@ -288,7 +297,8 @@ def info(messege):
 #admin pannel
 @bot.message_handler(commands=['adm'])
 def adm(messege):
-    if messege.from_user.id == 999711677:
+    global admin_list
+    if messege.from_user.id in admin_list:
         
         markup = types.ReplyKeyboardRemove()
         markup = types.ReplyKeyboardMarkup(row_width=2)
@@ -334,6 +344,7 @@ def menu(messege):
 #text handler
 @bot.message_handler(content_types=['text'])   
 def text_input(messege):
+    global admin_list
     log(messege)
     #print(str(messege.text) + ' |  from ' + str(messege.from_user.username))
     if getdb(messege.from_user.id,2) == True:
@@ -411,7 +422,7 @@ def text_input(messege):
             bot.send_message(messege.chat.id, user_list)
         
     #admin pan inside
-    elif messege.from_user.id == 999711677:
+    elif messege.from_user.id in admin_list:
         with open('tmp/tmp_del', 'r') as del_check:
             del_check = int(del_check.read())
         if del_check == 1:
