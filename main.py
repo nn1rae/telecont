@@ -1,4 +1,5 @@
 import time
+from webbrowser import get
 from telebot import types
 import random
 import telebot
@@ -50,7 +51,7 @@ def code_to_text(code: str, code_much: str):
     img.save('pic/out.png')
 
 def new_user(id,username='none'):
-    db.insert({'userid': id, 'prom': 0, 'wait': False, 'mon': 0, 'username': username,'next_win': False, 'type': 'user'})
+    db.insert({'userid': id, 'prom': 0 , 'mon': 0, 'username': username,'next_win': False, 'type': 'user'})
 
 def getdb(id,arg2 = 1):
     get0 = db.search(quv.userid == id)
@@ -328,61 +329,42 @@ def start(messege):
     except:
         new_user(user_id, username)
         bot.send_message(messege.chat.id, f'Здравствуй {messege.from_user.username}, и добро пожаловать.',reply_markup=markup)
-@bot.message_handler(commands=['menu'])
-def menu(messege):
+def ball_mark():
+    markup_pl = types.ReplyKeyboardMarkup()
+    itembtn_pl = types.KeyboardButton('⚾️')
+    itembtn_pl1 = types.KeyboardButton('🥎')
+    return markup_pl.add(itembtn_pl1, itembtn_pl)
+
+def menu_mark():
     markup = types.ReplyKeyboardMarkup(row_width=2)
     itembtn1 = types.KeyboardButton('🚧Кол-во моих попыток')
     itembtn2 = types.KeyboardButton('Попытать удачу🎢')
     itembtn3 = types.KeyboardButton('Кол-во моих монет🏦')
     itembtn4 = types.KeyboardButton('Монеты в попытки🪤')
     itembtn5 = types.KeyboardButton('Отправить код/ы ☕️')
-    markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5)
-    bot.send_message(messege.chat.id,'Чего хочешь:',reply_markup=markup)
+    return markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5)
 
+@bot.message_handler(commands=['menu'])
+def menu(messege):
+    bot.send_message(messege.chat.id,'Чего хочешь:',reply_markup=menu_mark())
 
 
 #text handler
 @bot.message_handler(content_types=['text'])   
 def text_input(messege):
     global admin_list
+    markup = menu_mark()
     log(messege)
-    #print(str(messege.text) + ' |  from ' + str(messege.from_user.username))
-    if getdb(messege.from_user.id,2) == True:
-            markup = types.ReplyKeyboardMarkup(row_width=2)
-            itembtn1 = types.KeyboardButton('🚧Кол-во моих попыток')
-            itembtn2 = types.KeyboardButton('Попытать удачу🎢')
-            itembtn3 = types.KeyboardButton('Кол-во моих монет🏦')
-            itembtn4 = types.KeyboardButton('Монеты в попытки🪤')
-            itembtn5 = types.KeyboardButton('Отправить код/ы ☕️')
-            markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5)
-            rend_cal = {'🥎': 0, '⚾️': 1}
-            rend = random.randrange(0,2)
-            try:
-                db.update({'wait': False}, quv.userid == messege.from_user.id)
-                if rend_cal[messege.text] == rend or next_win_check(messege.from_user.id):
-                    db.update({'mon': getdb(messege.from_user.id, 3) + 1}, quv.userid == messege.from_user.id)
-                    next_win(messege.from_user.id, 0)
-                    bot.send_message(messege.chat.id,'Кросс, добавляю +1 к твоему текущему балансу🥂',reply_markup=markup)
-                else:
-                    rand_ans = random.randint(0,4)
-                    if rand_ans >= 0 and rand_ans < 4:
-                        bot.send_message(messege.chat.id,'Если коротко, то ты проиграл',reply_markup=markup)
-                    else:
-                        bot.send_message(messege.chat.id,'Ну что я могу тебе сказать, ты лох',reply_markup=markup)
-            except:
-                markup_ppl = types.ReplyKeyboardMarkup()
-                itembtn_ppl = types.KeyboardButton('⚾️')
-                itembtn_ppl1 = types.KeyboardButton('🥎')
-                markup_ppl.add(itembtn_ppl1, itembtn_ppl)
-                bot.send_message(messege.chat.id, 'Пж выбери мячик и не пиши мне пургу', reply_markup=markup_ppl)
         
-    elif check_code(messege.text) and len(messege.text) == 5: 
+    if check_code(messege.text) and len(messege.text) == 5: 
         db.update({'prom': getdb(messege.from_user.id) + get_code_much(messege.text)}, quv.userid == messege.from_user.id)
         bot.send_message(messege.chat.id, 'Код заюзан, +{} к твоим попыткам🎫'.format(get_code_much(messege.text)))
         del_code(messege.text)
     
     elif messege.text == '🚧Кол-во моих попыток':
         bot.send_message(messege.chat.id, f'В данный момент у тебя {getdb(messege.from_user.id)} попыток')
+    
+    
     elif messege.text == 'Монеты в попытки🪤':
         if getdb(messege.from_user.id, 3) <= 0:
             bot.send_message(messege.chat.id,'Нельзя играть когда у тебя *0* попыток',parse_mode= 'Markdown')
@@ -390,17 +372,18 @@ def text_input(messege):
             bot.send_message(messege.chat.id,'Курс: *1* к *1*', 'Markdown')
             sent = bot.send_message(messege.chat.id,'Окей, сколько монет поменять?')
             bot.register_next_step_handler(sent, how_many_change)
+    
+    
+    
     elif messege.text == 'Попытать удачу🎢':
         if getdb(messege.from_user.id) > 0 :
-            markup_pl = types.ReplyKeyboardMarkup()
-            itembtn_pl = types.KeyboardButton('⚾️')
-            itembtn_pl1 = types.KeyboardButton('🥎')
-            markup_pl.add(itembtn_pl1, itembtn_pl)
-            bot.send_message(messege.chat.id,'⚾️ Или 🥎?',reply_markup=markup_pl)
-            tmp_prom = getdb(messege.from_user.id) - 1
-            db.update({'prom': tmp_prom, 'wait': True}, quv.userid == messege.from_user.id)
+            sent = bot.send_message(messege.chat.id,'Ставка🥣')
+            bot.register_next_step_handler(sent, get_bit)
         else:
             bot.send_message(messege.chat.id,'Нельзя играть когда у тебя *0* попыток',parse_mode= 'Markdown')
+    
+    
+    
     elif messege.text == 'Кол-во моих монет🏦':
         rand_ans = random.randint(0,4)
         if rand_ans >= 0 and rand_ans < 3:
@@ -409,6 +392,9 @@ def text_input(messege):
             bot.send_message(messege.chat.id,f'У тебя {getdb(messege.from_user.id, 3)} монет, ну ты и бомж конечно.')
         else:
             bot.send_message(messege.chat.id,f'У тебя {getdb(messege.from_user.id, 3)} монет, ШИКУЕМ 🥁🎉🎉.')
+    
+    
+    
     elif messege.text == 'Отправить код/ы ☕️':
         if getdb(messege.from_user.id) <= 0:
             bot.send_message(messege.chat.id, '🫧Нельзя отправлять попытки когда у тебя баланс на нуле🫧')
@@ -421,6 +407,12 @@ def text_input(messege):
             bot.register_next_step_handler(sent, who_to_sent_code)
             bot.send_message(messege.chat.id, user_list)
         
+    
+    
+    
+    
+    
+    
     #admin pan inside
     elif messege.from_user.id in admin_list:
         with open('tmp/tmp_del', 'r') as del_check:
@@ -598,12 +590,41 @@ def how_much_code_sent(messege):
                 db.update({'prom': getdb(messege.from_user.id) - int(messege.text)}, quv.userid == int(messege.from_user.id))
                 db.update({'prom': getdb(id_user[0]['userid']) + int(messege.text)}, quv.username == name_to_send_code)
                 bot.send_message(messege.chat.id, 'Успешно перечислил {} {} 🥣'.format(name_to_send_code, messege.text))
-                bot.send_message(id_user[0]['userid'], 'Вам пришло {} попыток от {}🧁'.format(messege.text, getdb(messege.from_user.id,4)))
+                bot.send_message(id_user[0]['userid'], 'Вам пришло {} попыток от {}🎁'.format(messege.text, getdb(messege.from_user.id,4)))
             else:
                 bot.send_message(messege.chat.id, '🫧Нельзя отправлять попытки когда у тебя баланс на нуле🫧')
         except:
             bot.send_message(messege.chat.id, 'Ошибка при отправке🍪🥛')
+user_bit = 0
+def get_bit(messege):
+    global user_bit
+    try:
+        user_bit = int(messege.text)
+        if getdb(messege.from_user.id) - int(messege.text) >= 0 and int(messege.text) != 0:
+            sent = bot.send_message(messege.chat.id, '🥎 или ⚾️?', reply_markup=ball_mark())
+            bot.register_next_step_handler(sent, throw_ball)
+        else:
+            bot.send_message(messege.chat.id, 'Ошибка🚭')
+    except Exception as e:
+        print(e)
+        bot.send_message(messege.chat.id, 'Ошибка🚭')
 
-
+def throw_ball(messege):
+    global user_bit
+    rend_cal = {'🥎': 0, '⚾️': 1}
+    rend = random.randrange(0,2)
+    try:
+        if rend_cal[messege.text] == rend or next_win_check(messege.from_user.id):
+            db.update({'mon': getdb(messege.from_user.id, 3) + user_bit * 2, 'prom': getdb(messege.from_user.id) - user_bit}, quv.userid == messege.from_user.id)
+            next_win(messege.from_user.id, 0)
+            bot.send_message(messege.chat.id,f'Кросс, добавляю +{user_bit * 2} к твоему текущему балансу🥂',reply_markup=menu_mark())
+        else:
+            ans = ['Если коротко, то ты проиграл', 'Ну что я могу тебе сказать, ты лох']
+            db.update({'prom': getdb(messege.from_user.id) - user_bit}, quv.userid == messege.from_user.id)
+            bot.send_message(messege.chat.id,random.choice(ans),reply_markup=menu_mark())       
+                        
+    except:
+        sent = bot.send_message(messege.chat.id, 'Пж выбери мячик и не пиши мне пургу', reply_markup=ball_mark())
+        bot.register_next_step_handler(sent, throw_ball)
 
 bot.polling(none_stop=True)
