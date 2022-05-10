@@ -547,7 +547,7 @@ def job(messege):
         if users[i]['userid'] in admin_list:
             pass
         else:
-            bot.send_message(users[i]['userid', 'Зака: ' + job_d])
+            bot.send_message(users[i]['userid'], 'Заказ: ' + job_d)
 
 def how_many_change(messege):
     try:
