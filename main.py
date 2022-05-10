@@ -14,7 +14,7 @@ from termcolor import colored
 import qrcode
 
 
-bot = telebot.TeleBot('')
+bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 admin_list = [999711677]
 
 db = TinyDB('../db.json')
@@ -300,16 +300,15 @@ def info(messege):
 def adm(messege):
     global admin_list
     if messege.from_user.id in admin_list:
-        
-        markup = types.ReplyKeyboardRemove()
-        markup = types.ReplyKeyboardMarkup(row_width=2)
+        markup = types.ReplyKeyboardMarkup()
         admitem1 = types.KeyboardButton('👛Новый код👛')
         admitem2 = types.KeyboardButton('📃Показать все коды📃')
         admitem3 = types.KeyboardButton('🧁Информация о пользователях🧁')
         admitem4 = types.KeyboardButton('💳🔨Изъять монеты')
         admitem5 = types.KeyboardButton('📥💵Добавить монеты')
         admitem6 = types.KeyboardButton('📨Отправить сообщение')
-        markup.add(admitem1, admitem2, admitem3, admitem4, admitem5, admitem6)
+        admitem7 = types.KeyboardButton('Заказ💤')
+        markup.add(admitem1, admitem2, admitem3, admitem4, admitem5, admitem6, admitem7)
         bot.send_message(messege.chat.id,'⚗️Что мне делать🪬', reply_markup=markup)
     else:
         bot.send_message(messege.chat.id,'Вам нельзя пользоваться этой функцией🔐')
@@ -530,6 +529,9 @@ def text_input(messege):
             with open('tmp/tmp_send', 'w') as tmp_del:
                 tmp_del.write('1')
                 bot.send_message(messege.chat.id,'Кинь idшку')
+        elif messege.text == 'Заказ💤':
+            send = bot.send_message(messege.chat.id, 'Карякай задание')
+            bot.register_next_step_handler(send, job)
     else:
         strpon = messege.text
         if 'пон' in strpon.lower():
@@ -538,6 +540,15 @@ def text_input(messege):
         else:
             not_und = ['Не пон че ты шпрехаеш', 'Я тебя не понимать блин', 'Нефига не понял, Миша давай все по новой','Мой русский не понимать твоего язык']
             bot.send_message(messege.chat.id,random.choice(not_und))
+def job(messege):
+    job_d = messege.text
+    users = db.search(quv.type == 'user')
+    for i in range(len(users)):
+        if users[i]['userid'] in admin_list:
+            pass
+        else:
+            bot.send_message(users[i]['userid', 'Зака: ' + job_d])
+
 def how_many_change(messege):
     try:
         if int(getdb(messege.from_user.id, 3)) - int(messege.text) < 0:
