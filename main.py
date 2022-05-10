@@ -14,7 +14,7 @@ from termcolor import colored
 import qrcode
 
 
-bot = telebot.TeleBot('')
+bot = telebot.TeleBot('5311428361:AAHmz1afEFRPBjN6fSHeARvarmyeNzsWIOA')
 admin_list = [999711677]
 
 db = TinyDB('../db.json')
