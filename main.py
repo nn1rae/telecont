@@ -300,7 +300,7 @@ def info(messege):
     Бот создан на языке Python3
     Просто по рофлу 
     *____________________________*
-    Версия *1.0*
+    Версия *1.1*
     
     Создатель *Klesberg*
     """
@@ -585,7 +585,7 @@ def job_text(messege):
 def job_cost(messege):
     global job_text_var
     try:
-        if int(messege.text) < 0:
+        if int(messege.text) <= 0:
             bot.send_message(messege.chat.id, 'Нельзя ставить отрицательные число🔧')
         elif getdb(messege.from_user.id) - int(messege.text) >= 0:
             db.update({'prom': getdb(messege.from_user.id) - int(messege.text)}, quv.userid == int(messege.from_user.id))
@@ -709,12 +709,14 @@ def call_back(data):
     match data.data[0]:
         case 'y':
             sent = bot.send_message(data.from_user.id, 'Кто выполнил задание?🪙')
+            bot.delete_message(data.from_user.id,data.message.id)
             for i in range(len(user_db)):
                 user_list += str(user_db[i]['username']) + '\n'
             bot.send_message(data.from_user.id, user_list)
             bot.register_next_step_handler(sent,who_do_job)
         case 'n':
             db.update({'prom': getdb(data.from_user.id) + get_cost}, quv.userid == data.from_user.id)
+            bot.delete_message(data.from_user.id,data.message.id)
             db.remove(quv.id == job_id)
             bot.send_message(data.from_user.id, 'Успешно удалил задание✅\nПопытки вернулись на счёт💡')
 def who_do_job(messege):
@@ -726,7 +728,7 @@ def who_do_job(messege):
         else:
             db.update({'prom': getdb(user[0]['userid']) + job_cost_var}, quv.userid == user[0]['userid'])
             bot.send_message(messege.chat.id,'Успешно💸')
-            bot.send_message(user[0]['userid'],'Вам пришло {} за выполнение задания💎'.format(job_cost_var))
+            bot.send_message(user[0]['userid'],'Вам пришло {} попыток за выполнение задания💎'.format(job_cost_var))
             db.remove(quv.id == glob_job_var_id)
     except Exception as e:
         bot.send_message(messege.chat.id, str(e) + ' 💊')
