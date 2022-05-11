@@ -587,7 +587,7 @@ def job_cost(messege):
     try:
         if int(messege.text) < 0:
             bot.send_message(messege.chat.id, 'Нельзя ставить отрицательные число🔧')
-        elif getdb(messege.from_user.id) - int(messege.text) > 0:
+        elif getdb(messege.from_user.id) - int(messege.text) >= 0:
             db.update({'prom': getdb(messege.from_user.id) - int(messege.text)}, quv.userid == int(messege.from_user.id))
             new_job(job_text_var,getdb(messege.from_user.id,4), int(messege.text))
             bot.send_message(messege.chat.id, 'Задание успешно создано🛡')
