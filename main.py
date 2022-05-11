@@ -1,3 +1,5 @@
+from email.message import Message
+from hashlib import new
 import time
 from webbrowser import get
 from telebot import types
@@ -19,7 +21,16 @@ admin_list = [999711677]
 
 db = TinyDB('../db.json')
 quv = Query()
+def new_job_id():
+    prom_temp = ''
+    alfab = string.ascii_uppercase + string.digits
+    for i in range(8):
+        prom_temp += random.choice(alfab)
+    return prom_temp 
 
+def new_job(text: str, creator:str, cost = 1):
+    id_j = new_job_id()
+    db.insert({'type': 'job', 'text': text, 'creator': creator, 'cost': cost, 'id': id_j})
 def code_to_qr(code):
     img = qrcode.make(f'tg://msg_url?url={code}')
     img.save("pic/qr.png")
@@ -30,7 +41,6 @@ def log(messege):
             print(colored('[user {}] '.format(getdb(messege.from_user.id, 4)), 'red') + 'Em : {}| Result {}'.format(str(messege.dice.emoji), str(messege.dice.value)))
         case 'text':
             print(colored('[user {}] '.format(getdb(messege.from_user.id, 4)), 'red') + colored(messege.text, 'blue'))
-
 
 def get_code_from_img(imP: str):
     reader = easyocr.Reader(['en'], gpu=False)
@@ -307,7 +317,7 @@ def adm(messege):
         admitem4 = types.KeyboardButton('💳🔨Изъять монеты')
         admitem5 = types.KeyboardButton('📥💵Добавить монеты')
         admitem6 = types.KeyboardButton('📨Отправить сообщение')
-        admitem7 = types.KeyboardButton('Заказ💤')
+        admitem7 = types.KeyboardButton('Объявление💤')
         markup.add(admitem1, admitem2, admitem3, admitem4, admitem5, admitem6, admitem7)
         bot.send_message(messege.chat.id,'⚗️Что мне делать🪬', reply_markup=markup)
     else:
@@ -319,9 +329,8 @@ def start(messege):
     user_id = messege.from_user.id
     username = messege.from_user.username
     markup = types.ReplyKeyboardMarkup(row_width=2)
-    itembtn1 = types.KeyboardButton('🚧Кол-во моих попыток')
-    itembtn2 = types.KeyboardButton('Попытать удачу🎢')
-    markup.add(itembtn1, itembtn2)
+    itembtn1 = types.KeyboardButton('Попытать удачу🎢')
+    markup.add(itembtn1)
     try:
         
         bot.send_message(messege.chat.id, f'Добро пожаловать обратно {messege.from_user.username} 🖇,на текущий момент у вас {getdb(user_id)} попыток', reply_markup=markup)
@@ -335,13 +344,16 @@ def ball_mark():
     return markup_pl.add(itembtn_pl1, itembtn_pl)
 
 def menu_mark():
-    markup = types.ReplyKeyboardMarkup(row_width=2)
+    markup = types.ReplyKeyboardMarkup()
     itembtn1 = types.KeyboardButton('🚧Кол-во моих попыток')
     itembtn2 = types.KeyboardButton('Попытать удачу🎢')
     itembtn3 = types.KeyboardButton('Кол-во моих монет🏦')
     itembtn4 = types.KeyboardButton('Монеты в попытки🪤')
-    itembtn5 = types.KeyboardButton('Отправить код/ы ☕️')
-    return markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5)
+    itembtn5 = types.KeyboardButton('Отправить попытки ☕️')
+    itembtn6 = types.KeyboardButton('Создать задание♻️')   
+    itembtn7 = types.KeyboardButton('Список заданий💰')
+    itembtn8 = types.KeyboardButton('Мои задания🚀')
+    return markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5, itembtn6, itembtn7, itembtn8)
 
 @bot.message_handler(commands=['menu'])
 def menu(messege):
@@ -365,10 +377,10 @@ def text_input(messege):
     
     
     elif messege.text == 'Монеты в попытки🪤':
-        if getdb(messege.from_user.id, 3) <= 0:
-            bot.send_message(messege.chat.id,'Нельзя играть когда у тебя *0* попыток',parse_mode= 'Markdown')
+        if getdb(messege.from_user.id,3) <= 0:
+            bot.send_message(messege.chat.id,'Нельзя отправить когда у тебя *0* попыток',parse_mode= 'Markdown')
         else:
-            bot.send_message(messege.chat.id,'Курс: *1* к *1*', 'Markdown')
+            bot.send_message(messege.chat.id,'Доступно к обмену *{}*'.format(getdb(messege.from_user.id, 3)), 'Markdown')
             sent = bot.send_message(messege.chat.id,'Окей, сколько монет поменять?')
             bot.register_next_step_handler(sent, how_many_change)
     
@@ -394,7 +406,7 @@ def text_input(messege):
     
     
     
-    elif messege.text == 'Отправить код/ы ☕️':
+    elif messege.text == 'Отправить попытки ☕️':
         if getdb(messege.from_user.id) <= 0:
             bot.send_message(messege.chat.id, '🫧Нельзя отправлять попытки когда у тебя баланс на нуле🫧')
         else:
@@ -407,10 +419,34 @@ def text_input(messege):
             bot.send_message(messege.chat.id, user_list)
         
     
+    elif messege.text == 'Создать задание♻️':
+        if getdb(messege.from_user.id) > 0 :
+            sent = bot.send_message(messege.chat.id, 'Опиши свое задание🍯')
+            bot.register_next_step_handler(sent, job_text)
+        else:
+            bot.send_message(messege.chat.id,'Нельзя давать задание когда у тебя *{}* попыток'.format(getdb(messege.from_user.id)),parse_mode= 'Markdown')
     
     
     
-    
+    elif messege.text == 'Список заданий💰':
+        jobs = db.search(quv.type == 'job')
+        if not jobs:
+            bot.send_message(messege.chat.id,'Заданий нет, отдыхай🏖')
+        else:
+            for i in range(len(jobs)):
+                bot.send_message(messege.chat.id, '{}\nНаграда: {}\n{}'.format(jobs[i]['creator'], jobs[i]['cost'], jobs[i]['text']))
+        
+    elif messege.text == 'Мои задания🚀':
+        my_jobs = db.search(quv.type == 'job' and quv.creator == getdb(messege.from_user.id, 4))
+        if not my_jobs:
+            bot.send_message(messege.chat.id, 'У тебя нет заданий🧼')
+        else:
+            for i in range(len(my_jobs)):
+                mj_markup = types.InlineKeyboardMarkup()
+                m1 = types.InlineKeyboardButton('✅Выполнено', callback_data='y' + my_jobs[i]['id'])
+                m2 = types.InlineKeyboardButton('❌Удалить', callback_data='n' + my_jobs[i]['id'])
+                mj_markup.add(m1,m2)
+                bot.send_message(messege.chat.id, 'Награда: {}\n———————————\n{}'.format(my_jobs[i]['cost'], my_jobs[i]['text']), reply_markup=mj_markup)
     
     #admin pan inside
     elif messege.from_user.id in admin_list:
@@ -529,9 +565,9 @@ def text_input(messege):
             with open('tmp/tmp_send', 'w') as tmp_del:
                 tmp_del.write('1')
                 bot.send_message(messege.chat.id,'Кинь idшку')
-        elif messege.text == 'Заказ💤':
-            send = bot.send_message(messege.chat.id, 'Карякай задание')
-            bot.register_next_step_handler(send, job)
+        elif messege.text == 'Объявление💤':
+            send = bot.send_message(messege.chat.id, 'Карякай Объявление')
+            bot.register_next_step_handler(send, anons)
     else:
         strpon = messege.text
         if 'пон' in strpon.lower():
@@ -540,14 +576,34 @@ def text_input(messege):
         else:
             not_und = ['Не пон че ты шпрехаеш', 'Я тебя не понимать блин', 'Нефига не понял, Миша давай все по новой','Мой русский не понимать твоего язык']
             bot.send_message(messege.chat.id,random.choice(not_und))
-def job(messege):
+job_text_var = ''
+def job_text(messege):
+    global job_text_var 
+    job_text_var = messege.text
+    sent = bot.send_message(messege.chat.id, 'Какое вознаграждение?')
+    bot.register_next_step_handler(sent, job_cost)
+def job_cost(messege):
+    global job_text_var
+    try:
+        if int(messege.text) < 0:
+            bot.send_message(messege.chat.id, 'Нельзя ставить отрицательные число🔧')
+        elif getdb(messege.from_user.id) - int(messege.text) > 0:
+            db.update({'prom': getdb(messege.from_user.id) - int(messege.text)}, quv.userid == int(messege.from_user.id))
+            new_job(job_text_var,getdb(messege.from_user.id,4), int(messege.text))
+            bot.send_message(messege.chat.id, 'Задание успешно создано🛡')
+        else:
+            bot.send_message(messege.chat.id, 'Не хватит денег 💸')
+    except:
+        sent = bot.send_message(messege.chat.id, 'Напиши число')
+        bot.register_next_step_handler(sent,job_cost)
+def anons(messege):
     job_d = messege.text
     users = db.search(quv.type == 'user')
     for i in range(len(users)):
         if users[i]['userid'] in admin_list:
             pass
         else:
-            bot.send_message(users[i]['userid'], 'Заказ: ' + job_d)
+            bot.send_message(users[i]['userid'], 'Объявление: ' + job_d)
 
 def how_many_change(messege):
     try:
@@ -637,5 +693,43 @@ def throw_ball(messege):
     except:
         sent = bot.send_message(messege.chat.id, 'Пж выбери мячик и не пиши мне пургу', reply_markup=ball_mark())
         bot.register_next_step_handler(sent, throw_ball)
+
+job_cost_var = 0
+glob_job_var_id = ''
+@bot.callback_query_handler(lambda query: query.data)
+def call_back(data):
+    global job_cost_var, glob_job_var_id
+    job_id = data.data[1:]
+    get_cost = db.search(quv.id == job_id)
+    get_cost = get_cost[0]['cost']
+    job_cost_var = get_cost
+    glob_job_var_id = job_id
+    user_db = db.search(quv.type == 'user')
+    user_list = ''
+    match data.data[0]:
+        case 'y':
+            sent = bot.send_message(data.from_user.id, 'Кто выполнил задание?🪙')
+            for i in range(len(user_db)):
+                user_list += str(user_db[i]['username']) + '\n'
+            bot.send_message(data.from_user.id, user_list)
+            bot.register_next_step_handler(sent,who_do_job)
+        case 'n':
+            db.update({'prom': getdb(data.from_user.id) + get_cost}, quv.userid == data.from_user.id)
+            db.remove(quv.id == job_id)
+            bot.send_message(data.from_user.id, 'Успешно удалил задание✅\nПопытки вернулись на счёт💡')
+def who_do_job(messege):
+    global job_cost_var, glob_job_var_id
+    try:
+        user = db.search(quv.username == messege.text)
+        if not user:
+            bot.send_message(messege.chat.id, 'Пользователь не найден🪫')
+        else:
+            db.update({'prom': getdb(user[0]['userid']) + job_cost_var}, quv.userid == user[0]['userid'])
+            bot.send_message(messege.chat.id,'Успешно💸')
+            bot.send_message(user[0]['userid'],'Вам пришло {} за выполнение задания💎'.format(job_cost_var))
+            db.remove(quv.id == glob_job_var_id)
+    except Exception as e:
+        bot.send_message(messege.chat.id, str(e) + ' 💊')
+
 
 bot.polling(none_stop=True)
