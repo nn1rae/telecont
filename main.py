@@ -431,7 +431,9 @@ def text_input(messege):
     elif messege.text == 'Список заданий💰':
         jobs = db.search(quv.type == 'job')
         if not jobs:
+            stickers = ['CAACAgIAAxkBAAEEtS9ifBxZxyTt8oWl3LX2LrubTJw56wACcAEAAgeGFQcK02XiqsOA_iQE','CAACAgIAAxkBAAEEtR1ifBpiliaXWc092y3ZOO1g3lKk2AACPhYAAvBTQUlpEWrlxJ6_-CQE', 'CAACAgIAAxkBAAEEtStifBxSf_jESFnQwaHkQZV9Nwk70gACeAEAAgeGFQf_I5bs8gjuziQE','CAACAgIAAxkBAAEEtSdifBwwqMS8GHpgDNBKY6yEE9ZcJQACfQEAAgeGFQeBvq55j6-apCQE','CAACAgIAAxkBAAEEtSVifBwmeTfN5LCklLL7gJ2QLA7_ugACbQEAAgeGFQfadHKlB3PdJCQE']
             bot.send_message(messege.chat.id,'Заданий нет, отдыхай🏖')
+            bot.send_sticker(messege.chat.id, random.choice(stickers))
         else:
             for i in range(len(jobs)):
                 bot.send_message(messege.chat.id, '{}\nНаграда: {}\n{}'.format(jobs[i]['creator'], jobs[i]['cost'], jobs[i]['text']))
@@ -447,6 +449,7 @@ def text_input(messege):
                 m2 = types.InlineKeyboardButton('❌Удалить', callback_data='n' + my_jobs[i]['id'])
                 mj_markup.add(m1,m2)
                 bot.send_message(messege.chat.id, 'Награда: {}\n———————————\n{}'.format(my_jobs[i]['cost'], my_jobs[i]['text']), reply_markup=mj_markup)
+                
     
     #admin pan inside
     elif messege.from_user.id in admin_list:
@@ -590,7 +593,8 @@ def job_cost(messege):
         elif getdb(messege.from_user.id) - int(messege.text) >= 0:
             db.update({'prom': getdb(messege.from_user.id) - int(messege.text)}, quv.userid == int(messege.from_user.id))
             new_job(job_text_var,getdb(messege.from_user.id,4), int(messege.text))
-            bot.send_message(messege.chat.id, 'Задание успешно создано🛡')
+            bot.send_message(messege.chat.id, 'Задание успешно создано📝')
+            bot.send_sticker(messege.chat.id, 'CAACAgIAAxkBAAEEtT5ifB2cOysQNL7ekNpwMn683G_QlgACbwEAAgeGFQeqOYyl3u2YdiQE')
         else:
             bot.send_message(messege.chat.id, 'Не хватит денег 💸')
     except:
@@ -657,7 +661,9 @@ def how_much_code_sent(messege):
                 db.update({'prom': getdb(messege.from_user.id) - int(messege.text)}, quv.userid == int(messege.from_user.id))
                 db.update({'prom': getdb(id_user[0]['userid']) + int(messege.text)}, quv.username == name_to_send_code)
                 bot.send_message(messege.chat.id, 'Успешно перечислил {} {} 🥣'.format(name_to_send_code, messege.text))
+                bot.send_sticker(messege.chat.id, 'CAACAgIAAxkBAAEEtU1ifB4YdekfqdxMD8OuNmYb6KXnwwACgwEAAgeGFQdsHwABu9sMwMgkBA')
                 bot.send_message(id_user[0]['userid'], 'Вам пришло {} попыток от {}🎁'.format(messege.text, getdb(messege.from_user.id,4)))
+                bot.send_sticker(id_user[0]['userid'], 'CAACAgIAAxkBAAEEtU9ifB4rhb9xwHmxBgOJPyYfNReRbwACjgEAAgeGFQduJUVzTsacOiQE')
             else:
                 bot.send_message(messege.chat.id, '🫧Нельзя отправлять попытки когда у тебя баланс на нуле🫧')
         except:
@@ -729,6 +735,7 @@ def who_do_job(messege):
             db.update({'prom': getdb(user[0]['userid']) + job_cost_var}, quv.userid == user[0]['userid'])
             bot.send_message(messege.chat.id,'Успешно💸')
             bot.send_message(user[0]['userid'],'Вам пришло {} попыток за выполнение задания💎'.format(job_cost_var))
+            bot.send_sticker(user[0]['userid'], 'CAACAgIAAxkBAAEEtTtifB0afxXPMHM3KnufNClsNDpt0gACygEAAmJlAwABjtu6cwvGh2QkBA')
             db.remove(quv.id == glob_job_var_id)
     except Exception as e:
         bot.send_message(messege.chat.id, str(e) + ' 💊')
