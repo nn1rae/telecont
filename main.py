@@ -20,6 +20,11 @@ admin_list = [999711677]
 
 db = TinyDB('../db.json')
 quv = Query()
+def np(text: str):
+    for i in text:
+        print(i, end="", flush=True)
+        time.sleep(.05)
+    print('\n')
 def new_job_id():
     prom_temp = ''
     alfab = string.ascii_uppercase + string.digits
@@ -44,9 +49,9 @@ def code_to_qr(code):
 def log(messege):
     match messege.content_type:
         case 'dice':
-            print(colored('[user {}] '.format(getdb(messege.from_user.id, 4)), 'red') + 'Em : {}| Result {}'.format(str(messege.dice.emoji), str(messege.dice.value)))
+            np(colored('[user {}] '.format(getdb(messege.from_user.id, 4)), 'red') + 'Em : {}| Result {}'.format(str(messege.dice.emoji), str(messege.dice.value)))
         case 'text':
-            print(colored('[user {}] '.format(getdb(messege.from_user.id, 4)), 'red') + colored(messege.text, 'blue'))
+            np(colored('[user {}] '.format(getdb(messege.from_user.id, 4)), 'red') + colored(messege.text, 'blue'))
 
 def get_code_from_img(imP: str):
     reader = easyocr.Reader(['en'], gpu=False)
@@ -254,7 +259,6 @@ def dice(messege):
         bot.send_message(messege.chat.id,'Нельзя играть когда у тебя *0* попыток',parse_mode='Markdown')
     else:
         no_win_mes = ['Увы ты проиграл а промик ушел в небытие', 'Проигрыш', 'Попробуй в другой раз', 'Не сегодня', 'Можешь считать что промик потрачен в пустую', 'Повезет в другой раз']
-        log(messege)
         if messege.dice.emoji == '🎯':
             time.sleep(2.36)
             if messege.dice.value == 6 or next_win_check(messege.from_user.id):
@@ -299,6 +303,7 @@ def dice(messege):
                 bot.send_message(messege.chat.id, random.choice(no_win_mes))
         else:
             bot.send_message(messege.chat.id, 'Эта игра пока что не поддерживается')
+        log(messege)
 @bot.message_handler(commands=['info'])
 def info(messege):
     mes = """
@@ -324,7 +329,8 @@ def adm(messege):
         admitem5 = types.KeyboardButton('📥💵Добавить монеты')
         admitem6 = types.KeyboardButton('📨Отправить сообщение')
         admitem7 = types.KeyboardButton('Объявление💤')
-        markup.add(admitem1, admitem2, admitem3, admitem4, admitem5, admitem6, admitem7)
+        admitem8 = types.KeyboardButton('Редакция продаж🚰')
+        markup.add(admitem1, admitem2, admitem3, admitem4, admitem5, admitem6, admitem7, admitem8)
         bot.send_message(messege.chat.id,'⚗️Что мне делать🪬', reply_markup=markup)
     else:
         bot.send_message(messege.chat.id,'Вам нельзя пользоваться этой функцией🔐')
@@ -373,7 +379,6 @@ def menu(messege):
 def text_input(messege):
     global admin_list
     markup = menu_mark()
-    log(messege)
         
     if check_code(messege.text) and len(messege.text) == 5: 
         db.update({'prom': getdb(messege.from_user.id) + get_code_much(messege.text)}, quv.userid == messege.from_user.id)
@@ -615,8 +620,18 @@ def text_input(messege):
                 tmp_del.write('1')
                 bot.send_message(messege.chat.id,'Кинь idшку')
         elif messege.text == 'Объявление💤':
-            send = bot.send_message(messege.chat.id, 'Карякай Объявление')
+            send = bot.send_message(messege.chat.id, 'Карякай Объявление') 
             bot.register_next_step_handler(send, anons)
+        elif messege.text == 'Редакция продаж🚰':
+            adm_sells = db.search(quv.type == 'sell') 
+            if adm_sells:
+                for i in range(len(adm_sells)):
+                    mj_markup = types.InlineKeyboardMarkup()
+                    m1 = types.InlineKeyboardButton('❌Удалить', callback_data='0' + adm_sells[i]['id'])
+                    mj_markup.add(m1)
+                    bot.send_message(messege.chat.id, '{}\n———————————\nСтоимость🍰: {}\nВладелец обьявления {}'.format(adm_sells[i]['text'], adm_sells[i]['cost'], adm_sells[i]['creator']), reply_markup=mj_markup)
+            else:
+                bot.send_message(messege.chat.id, 'У тебя нет продаж🧋')
     else:
         strpon = messege.text
         if 'пон' in strpon.lower():
@@ -625,6 +640,7 @@ def text_input(messege):
         else:
             not_und = ['Не пон че ты шпрехаеш', 'Я тебя не понимать блин', 'Нефига не понял, Миша давай все по новой','Мой русский не понимать твоего язык']
             bot.send_message(messege.chat.id,random.choice(not_und))
+    log(messege)
 job_text_var = ''
 def job_text(messege):
     global job_text_var 
