@@ -1,5 +1,4 @@
-from email.message import Message
-from hashlib import new
+from operator import le
 import time
 from webbrowser import get
 from telebot import types
@@ -27,7 +26,14 @@ def new_job_id():
     for i in range(8):
         prom_temp += random.choice(alfab)
     return prom_temp 
-
+def get_sell_cost(id):
+    list = db.search(quv.id == id)
+    list = list[0]
+    return list['cost']
+def sell(text: str, creator:str, cost = 1):
+    id_j = new_job_id()
+    db.insert({'type': 'sell', 'text': text, 'creator': creator, 'cost': cost, 'id': id_j})
+    return id_j
 def new_job(text: str, creator:str, cost = 1):
     id_j = new_job_id()
     db.insert({'type': 'job', 'text': text, 'creator': creator, 'cost': cost, 'id': id_j})
@@ -60,7 +66,7 @@ def code_to_text(code: str, code_much: str):
     draw.text((1560, 940),code_much,(255,255,255),font=font2)
     img.save('pic/out.png')
 
-def new_user(id,username='none'):
+def new_user(id,username='anonim'):
     db.insert({'userid': id, 'prom': 0 , 'mon': 0, 'username': username,'next_win': False, 'type': 'user'})
 
 def getdb(id,arg2 = 1):
@@ -300,7 +306,7 @@ def info(messege):
     Бот создан на языке Python3
     Просто по рофлу 
     *____________________________*
-    Версия *1.1*
+    Версия *1.2*
     
     Создатель *Klesberg*
     """
@@ -350,10 +356,12 @@ def menu_mark():
     itembtn3 = types.KeyboardButton('Кол-во моих монет🏦')
     itembtn4 = types.KeyboardButton('Монеты в попытки🪤')
     itembtn5 = types.KeyboardButton('Отправить попытки ☕️')
-    itembtn6 = types.KeyboardButton('Создать задание♻️')   
+    #itembtn6 = types.KeyboardButton('Создать задание♻️')   
     itembtn7 = types.KeyboardButton('Список заданий💰')
     itembtn8 = types.KeyboardButton('Мои задания🚀')
-    return markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5, itembtn6, itembtn7, itembtn8)
+    itembtn9 = types.KeyboardButton('Мои продажи🕯')
+    itembtn10 = types.KeyboardButton('Рынок🛒')
+    return markup.add(itembtn1, itembtn2, itembtn3, itembtn4, itembtn5, itembtn7, itembtn8, itembtn9, itembtn10)
 
 @bot.message_handler(commands=['menu'])
 def menu(messege):
@@ -418,16 +426,9 @@ def text_input(messege):
             bot.register_next_step_handler(sent, who_to_sent_code)
             bot.send_message(messege.chat.id, user_list)
         
-    
-    elif messege.text == 'Создать задание♻️':
-        if getdb(messege.from_user.id) > 0 :
-            sent = bot.send_message(messege.chat.id, 'Опиши свое задание🍯')
-            bot.register_next_step_handler(sent, job_text)
-        else:
-            bot.send_message(messege.chat.id,'Нельзя давать задание когда у тебя *{}* попыток'.format(getdb(messege.from_user.id)),parse_mode= 'Markdown')
-    
-    
-    
+
+
+
     elif messege.text == 'Список заданий💰':
         jobs = db.search(quv.type == 'job')
         if not jobs:
@@ -439,17 +440,62 @@ def text_input(messege):
                 bot.send_message(messege.chat.id, '{}\nНаграда: {}\n{}'.format(jobs[i]['creator'], jobs[i]['cost'], jobs[i]['text']))
         
     elif messege.text == 'Мои задания🚀':
-        my_jobs = db.search(quv.type == 'job' and quv.creator == getdb(messege.from_user.id, 4))
-        if not my_jobs:
-            bot.send_message(messege.chat.id, 'У тебя нет заданий🧼')
-        else:
+        temp_var = 0
+        my_jobs = db.search(quv.type == 'job')
+        if my_jobs:
             for i in range(len(my_jobs)):
-                mj_markup = types.InlineKeyboardMarkup()
-                m1 = types.InlineKeyboardButton('✅Выполнено', callback_data='y' + my_jobs[i]['id'])
-                m2 = types.InlineKeyboardButton('❌Удалить', callback_data='n' + my_jobs[i]['id'])
-                mj_markup.add(m1,m2)
-                bot.send_message(messege.chat.id, 'Награда: {}\n———————————\n{}'.format(my_jobs[i]['cost'], my_jobs[i]['text']), reply_markup=mj_markup)
+                if my_jobs[i]['creator'] == getdb(messege.from_user.id, 4):
+                    temp_var += 1
+                    mj_markup = types.InlineKeyboardMarkup()
+                    m1 = types.InlineKeyboardButton('✅Выполнено', callback_data='y' + my_jobs[i]['id'])
+                    m2 = types.InlineKeyboardButton('❌Удалить', callback_data='n' + my_jobs[i]['id'])
+                    mj_markup.add(m1,m2)
+                    bot.send_message(messege.chat.id, 'Награда: {}\n———————————\n{}'.format(my_jobs[i]['cost'], my_jobs[i]['text']), reply_markup=mj_markup)         
+            if temp_var == 0:
+                bot.send_message(messege.chat.id, 'У тебя нет заданий🧼')
+        else:
+            bot.send_message(messege.chat.id, 'У тебя нет заданий🧼')
+        markup_addjob = types.InlineKeyboardMarkup()
+        m1 = types.InlineKeyboardButton('Создать задание♻️', callback_data='j')
+        markup_addjob.add(m1)
+        bot.send_message(messege.chat.id, 'Опиши свое задание🍯', reply_markup=markup_addjob)
+            
+    
+    elif messege.text == 'Мои продажи🕯':
+        temp_var = 0
+        my_sells = db.search(quv.type == 'sell') 
+        if my_sells:
+            for i in range(len(my_sells)):
+                if my_sells[i]['creator'] == getdb(messege.from_user.id, 4):
+                    temp_var += 1
+                    mj_markup = types.InlineKeyboardMarkup()
+                    m1 = types.InlineKeyboardButton('❌Удалить', callback_data='0' + my_sells[i]['id'])
+                    mj_markup.add(m1)
+                    bot.send_message(messege.chat.id, '{}\n———————————\nСтоимость🍰: {}'.format(my_sells[i]['text'], my_sells[i]['cost']), reply_markup=mj_markup)
+            if temp_var == 0:
+                bot.send_message(messege.chat.id, 'У тебя нет продаж🧋')
+        else:
+            bot.send_message(messege.chat.id, 'У тебя нет продаж🧋')
+        markup_sell = types.InlineKeyboardMarkup()
+        m1 = types.InlineKeyboardButton('Продать🍸', callback_data='s')
+        markup_sell.add(m1)
+        bot.send_message(messege.chat.id, 'Создать обьявление о продаже💶', reply_markup=markup_sell)
+
+
+
+    elif messege.text == 'Рынок🛒':
+        buy_list = db.search(quv.type == 'sell')
+        if not buy_list:
+            bot.send_message(messege.chat.id, 'Пока что ничего не продаеться🛌')
+        else:
+            for i in range(len(buy_list)):
+                if buy_list[i]['creator'] != getdb(messege.from_user.id, 4):
+                    mj_markup = types.InlineKeyboardMarkup()
+                    m1 = types.InlineKeyboardButton('Купить💳', callback_data='b' + buy_list[i]['id'])
+                    mj_markup.add(m1)
+                    bot.send_message(messege.chat.id, '{}\n———————————\nСтоимость🍰: {}\nВладелец обьявления {}'.format(buy_list[i]['text'], buy_list[i]['cost'], buy_list[i]['creator']), reply_markup=mj_markup)
                 
+    
     
     #admin pan inside
     elif messege.from_user.id in admin_list:
@@ -704,27 +750,81 @@ job_cost_var = 0
 glob_job_var_id = ''
 @bot.callback_query_handler(lambda query: query.data)
 def call_back(data):
-    global job_cost_var, glob_job_var_id
     job_id = data.data[1:]
-    get_cost = db.search(quv.id == job_id)
-    get_cost = get_cost[0]['cost']
-    job_cost_var = get_cost
-    glob_job_var_id = job_id
-    user_db = db.search(quv.type == 'user')
-    user_list = ''
+    
     match data.data[0]:
-        case 'y':
-            sent = bot.send_message(data.from_user.id, 'Кто выполнил задание?🪙')
-            bot.delete_message(data.from_user.id,data.message.id)
-            for i in range(len(user_db)):
-                user_list += str(user_db[i]['username']) + '\n'
-            bot.send_message(data.from_user.id, user_list)
-            bot.register_next_step_handler(sent,who_do_job)
-        case 'n':
-            db.update({'prom': getdb(data.from_user.id) + get_cost}, quv.userid == data.from_user.id)
+        case 'j':
+            if getdb(data.from_user.id) > 0 :
+                sent = bot.send_message(data.from_user.id, 'Опиши свое задание🍯')
+                bot.register_next_step_handler(sent, job_text)
+            else:
+                bot.send_message(data.from_user.id,'Нельзя давать задание когда у тебя *{}* попыток'.format(getdb(data.from_user.id)),parse_mode= 'Markdown')
+    
+        case 's':
+            sent = bot.send_message(data.from_user.id, 'Что вы продаете?🎙')
+            bot.register_next_step_handler(sent, get_sell_text)
+        case '0':
             bot.delete_message(data.from_user.id,data.message.id)
             db.remove(quv.id == job_id)
-            bot.send_message(data.from_user.id, 'Успешно удалил задание✅\nПопытки вернулись на счёт💡')
+            bot.send_message(data.from_user.id, 'Успешно удалил обьявление📦❌')
+        case 'b':
+            can_buy_check = getdb(data.from_user.id) - get_sell_cost(job_id)
+            if can_buy_check >= 0:
+                job_desc = db.search(quv.id == job_id)
+                creator_tmp = db.search(quv.id == job_id)
+                creator = db.search(quv.username == creator_tmp[0]['creator'])
+                bot.delete_message(data.from_user.id,data.message.id)
+                db.update({'prom': getdb(data.from_user.id) - get_sell_cost(job_id)}, quv.userid == data.from_user.id)
+                db.update({'prom': getdb(creator[0]['userid']) + get_sell_cost(job_id)}, quv.userid == creator[0]['userid'])
+                bot.send_message(data.from_user.id, 'Покупка успешна📦\nКод: {}🔑'.format(job_id))
+                bot.send_message(creator[0]['userid'], 'У вас купили\n~~~~~~~~\n{}\n~~~~~~~~\nПокупатель: {}🎈\nКлюч: {}🔑'.format(job_desc[0]['text'],getdb(data.from_user.id, 4), job_id))
+                db.remove(quv.id == job_id)
+            else:
+                bot.send_message(data.from_user.id, 'Вам нехватает {} попыток🪙'.format(-can_buy_check))
+        case _:    
+            global job_cost_var, glob_job_var_id
+            get_cost = db.search(quv.id == job_id)
+            get_cost = get_cost[0]['cost']
+            job_cost_var = get_cost
+            glob_job_var_id = job_id
+            user_db = db.search(quv.type == 'user')
+            user_list = ''
+            match data.data[0]:
+                case 'y':
+                    sent = bot.send_message(data.from_user.id, 'Кто выполнил задание?🪙')
+                    bot.delete_message(data.from_user.id,data.message.id)
+                    for i in range(len(user_db)):
+                        user_list += str(user_db[i]['username']) + '\n'
+                    bot.send_message(data.from_user.id, user_list)
+                    bot.register_next_step_handler(sent,who_do_job)
+                case 'n':
+                    db.update({'prom': getdb(data.from_user.id) + get_cost}, quv.userid == data.from_user.id)
+                    bot.delete_message(data.from_user.id,data.message.id)
+                    db.remove(quv.id == job_id)
+                    bot.send_message(data.from_user.id, 'Успешно удалил задание✅\nПопытки вернулись на счёт💡')
+get_sell_text_var = ''
+def get_sell_text(messege):
+    global get_sell_text_var
+    get_sell_text_var = messege.text
+    sent = bot.send_message(messege.chat.id, 'Укажите стоимость📡')
+    bot.register_next_step_handler(sent, get_sell_cost_hand)
+def get_sell_cost_hand(messege):
+    global get_sell_text_var 
+    try:
+        if int(messege.text) > 0:
+            sell_id = sell(get_sell_text_var,getdb(messege.from_user.id,4), int(messege.text))
+            bot.send_message(messege.chat.id, 'Успешно🧉')
+            my_sells = db.search(quv.id == sell_id)
+            mj_markup = types.InlineKeyboardMarkup()
+            m1 = types.InlineKeyboardButton('❌Удалить', callback_data='0' + my_sells[0]['id'])
+            mj_markup.add(m1)
+            bot.send_message(messege.chat.id, '{}\n———————————\nСтоимость🍰: {}'.format(my_sells[0]['text'], my_sells[0]['cost']), reply_markup=mj_markup)
+        else:
+            bot.send_message(messege.chat.id,'Увы меньше нуля нульзя указывать цену🧯')
+    except:
+        sent = bot.send_message(messege.from_user.id,'Введите число🔢')
+        bot.register_next_step_handler(sent, get_sell_cost_hand)
+
 def who_do_job(messege):
     global job_cost_var, glob_job_var_id
     try:
