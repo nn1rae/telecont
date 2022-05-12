@@ -378,7 +378,7 @@ def menu(messege):
 @bot.message_handler(content_types=['text'])   
 def text_input(messege):
     global admin_list
-    markup = menu_mark()
+    #markup = menu_mark()
         
     if check_code(messege.text) and len(messege.text) == 5: 
         db.update({'prom': getdb(messege.from_user.id) + get_code_much(messege.text)}, quv.userid == messege.from_user.id)
