@@ -750,58 +750,60 @@ job_cost_var = 0
 glob_job_var_id = ''
 @bot.callback_query_handler(lambda query: query.data)
 def call_back(data):
-    job_id = data.data[1:]
-    
-    match data.data[0]:
-        case 'j':
-            if getdb(data.from_user.id) > 0 :
-                sent = bot.send_message(data.from_user.id, 'Опиши свое задание🍯')
-                bot.register_next_step_handler(sent, job_text)
-            else:
-                bot.send_message(data.from_user.id,'Нельзя давать задание когда у тебя *{}* попыток'.format(getdb(data.from_user.id)),parse_mode= 'Markdown')
-    
-        case 's':
-            sent = bot.send_message(data.from_user.id, 'Что вы продаете?🎙')
-            bot.register_next_step_handler(sent, get_sell_text)
-        case '0':
-            bot.delete_message(data.from_user.id,data.message.id)
-            db.remove(quv.id == job_id)
-            bot.send_message(data.from_user.id, 'Успешно удалил обьявление📦❌')
-        case 'b':
-            can_buy_check = getdb(data.from_user.id) - get_sell_cost(job_id)
-            if can_buy_check >= 0:
-                job_desc = db.search(quv.id == job_id)
-                creator_tmp = db.search(quv.id == job_id)
-                creator = db.search(quv.username == creator_tmp[0]['creator'])
+    try:
+        job_id = data.data[1:]
+        match data.data[0]:
+            case 'j':
+                if getdb(data.from_user.id) > 0 :
+                    sent = bot.send_message(data.from_user.id, 'Опиши свое задание🍯')
+                    bot.register_next_step_handler(sent, job_text)
+                else:
+                    bot.send_message(data.from_user.id,'Нельзя давать задание когда у тебя *{}* попыток'.format(getdb(data.from_user.id)),parse_mode= 'Markdown')
+        
+            case 's':
+                sent = bot.send_message(data.from_user.id, 'Что вы продаете?🎙')
+                bot.register_next_step_handler(sent, get_sell_text)
+            case '0':
                 bot.delete_message(data.from_user.id,data.message.id)
-                db.update({'prom': getdb(data.from_user.id) - get_sell_cost(job_id)}, quv.userid == data.from_user.id)
-                db.update({'prom': getdb(creator[0]['userid']) + get_sell_cost(job_id)}, quv.userid == creator[0]['userid'])
-                bot.send_message(data.from_user.id, 'Покупка успешна📦\nКод: {}🔑'.format(job_id))
-                bot.send_message(creator[0]['userid'], 'У вас купили\n~~~~~~~~\n{}\n~~~~~~~~\nПокупатель: {}🎈\nКлюч: {}🔑'.format(job_desc[0]['text'],getdb(data.from_user.id, 4), job_id))
                 db.remove(quv.id == job_id)
-            else:
-                bot.send_message(data.from_user.id, 'Вам нехватает {} попыток🪙'.format(-can_buy_check))
-        case _:    
-            global job_cost_var, glob_job_var_id
-            get_cost = db.search(quv.id == job_id)
-            get_cost = get_cost[0]['cost']
-            job_cost_var = get_cost
-            glob_job_var_id = job_id
-            user_db = db.search(quv.type == 'user')
-            user_list = ''
-            match data.data[0]:
-                case 'y':
-                    sent = bot.send_message(data.from_user.id, 'Кто выполнил задание?🪙')
+                bot.send_message(data.from_user.id, 'Успешно удалил обьявление📦❌')
+            case 'b':
+                can_buy_check = getdb(data.from_user.id) - get_sell_cost(job_id)
+                if can_buy_check >= 0:
+                    job_desc = db.search(quv.id == job_id)
+                    creator_tmp = db.search(quv.id == job_id)
+                    creator = db.search(quv.username == creator_tmp[0]['creator'])
                     bot.delete_message(data.from_user.id,data.message.id)
-                    for i in range(len(user_db)):
-                        user_list += str(user_db[i]['username']) + '\n'
-                    bot.send_message(data.from_user.id, user_list)
-                    bot.register_next_step_handler(sent,who_do_job)
-                case 'n':
-                    db.update({'prom': getdb(data.from_user.id) + get_cost}, quv.userid == data.from_user.id)
-                    bot.delete_message(data.from_user.id,data.message.id)
+                    db.update({'prom': getdb(data.from_user.id) - get_sell_cost(job_id)}, quv.userid == data.from_user.id)
+                    db.update({'prom': getdb(creator[0]['userid']) + get_sell_cost(job_id)}, quv.userid == creator[0]['userid'])
+                    bot.send_message(data.from_user.id, 'Покупка успешна📦\nКод: {}🔑'.format(job_id))
+                    bot.send_message(creator[0]['userid'], 'У вас купили\n~~~~~~~~\n{}\n~~~~~~~~\nПокупатель: {}🎈\nКлюч: {}🔑'.format(job_desc[0]['text'],getdb(data.from_user.id, 4), job_id))
                     db.remove(quv.id == job_id)
-                    bot.send_message(data.from_user.id, 'Успешно удалил задание✅\nПопытки вернулись на счёт💡')
+                else:
+                    bot.send_message(data.from_user.id, 'Вам нехватает {} попыток🪙'.format(-can_buy_check))
+            case _:    
+                global job_cost_var, glob_job_var_id
+                get_cost = db.search(quv.id == job_id)
+                get_cost = get_cost[0]['cost']
+                job_cost_var = get_cost
+                glob_job_var_id = job_id
+                user_db = db.search(quv.type == 'user')
+                user_list = ''
+                match data.data[0]:
+                    case 'y':
+                        sent = bot.send_message(data.from_user.id, 'Кто выполнил задание?🪙')
+                        bot.delete_message(data.from_user.id,data.message.id)
+                        for i in range(len(user_db)):
+                            user_list += str(user_db[i]['username']) + '\n'
+                        bot.send_message(data.from_user.id, user_list)
+                        bot.register_next_step_handler(sent,who_do_job)
+                    case 'n':
+                        db.update({'prom': getdb(data.from_user.id) + get_cost}, quv.userid == data.from_user.id)
+                        bot.delete_message(data.from_user.id,data.message.id)
+                        db.remove(quv.id == job_id)
+                        bot.send_message(data.from_user.id, 'Успешно удалил задание✅\nПопытки вернулись на счёт💡')
+    except Exception as e:
+        print(e)
 get_sell_text_var = ''
 def get_sell_text(messege):
     global get_sell_text_var
