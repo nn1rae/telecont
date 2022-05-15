@@ -25,9 +25,6 @@ def sell(text: str, creator:str, cost = 1):
     db.insert({'type': 'sell', 'text': text, 'creator': creator, 'cost': cost, 'id': id_j})
     return id_j
 
-def transaction(froo: int, too: int, much: int):
-    db.update({'ball': getuser(froo) - much}, q.id == froo)
-    db.update({'ball': getuser(too) + much}, q.id == too)
 
 def user_name_to_id(username):
     user = db.search(q.username == username)
@@ -41,6 +38,10 @@ def getuser(id,to_get = 'ball'):
         return "NOT FOUND"
     else:
         return toto[0][to_get]
+def transaction(froo: int, too: int, much: int):
+    print('transaction from {} to {} ({})'.format(getuser(froo, 'username'),getuser(too, 'username'), much))
+    db.update({'ball': getuser(froo) - much}, q.userid == froo)
+    db.update({'ball': getuser(too) + much}, q.userid == too)
 def new_user(data):
     id = data.from_user.id 
     username = data.from_user.username
@@ -127,7 +128,7 @@ def text(message):
                     user_db = db.search(q.type == 'user')
                     user_list = ''
                     for i in range(len(user_db)):
-                        user_list += user_db[i]['username'] + '\n'
+                        user_list += str(user_db[i]['username']) + '\n'
                     sent = bot.send_message(message.chat.id, 'Кому отправляем?🚬')
                     bot.send_message(message.chat.id, user_list)
                     bot.register_next_step_handler(sent, handler_to_get_to_who_sent)
