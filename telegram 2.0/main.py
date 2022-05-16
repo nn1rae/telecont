@@ -112,12 +112,11 @@ def start(message):
 def text(message):
     new_user(message)
     if len(message.text) == 9:
-        codes = db.search(q.type == 'code')
         if check_code(message.text):
             addbal(message.from_user.id, get_code_much(message.text))
-            del_code(message.text)
-            bot.send_message(message.chat.id, 'Успешно активировал {}🦭'.format(codes[0]['much']))
+            bot.send_message(message.chat.id, 'Успешно активировал {}🦭'.format(get_code_much(message.text)))
             bot.send_sticker(message.chat.id, "CAACAgIAAxkBAAEEvIJigWmhXxLdMBI1TM7mCaAuStA5bQACMBkAAjalGUovXTYAAT6tdfkkBA")
+            del_code(message.text)
     else:
         match message.text:
             case "Мой кошелек🏦":
@@ -146,9 +145,16 @@ def text(message):
                         if buy_list[i]['creator'] != getuser(message.from_user.id, "username"):
                             temp_var += 1
                             mj_markup = types.InlineKeyboardMarkup()
-                            m1 = types.InlineKeyboardButton('Купить💳', callback_data='b' + buy_list[i]['id'])
+                            cost_in_seel = ''
+                            for Ss in range(get_sell_cost(buy_list[i]['id'])):
+                                cost_in_seel += '🦭'
+                                if Ss > 6:
+                                    cost_in_seel = str(get_sell_cost(buy_list[i]['id'])) + '🦭'
+                                    pass
+
+                            m1 = types.InlineKeyboardButton('{}'.format(cost_in_seel), callback_data='b' + buy_list[i]['id'])
                             mj_markup.add(m1)
-                            bot.send_message(message.chat.id, '{}\n———————————\nСтоимость🍰: {}\nВладелец обьявления {}'.format(buy_list[i]['text'], buy_list[i]['cost'], buy_list[i]['creator']), reply_markup=mj_markup)
+                            bot.send_message(message.chat.id, '{}\n———————————\nВладелец обьявления {}'.format(buy_list[i]['text'], buy_list[i]['creator']), reply_markup=mj_markup)
                     if temp_var == 0:
                         bot.send_message(message.chat.id, 'Ничего не продаеться🗞')
             case "Мои продажи🪜":
@@ -191,13 +197,18 @@ def handler_to_get_to_who_sent(message):
         bot.send_sticker(message.chat.id,"CAACAgIAAxkBAAEEvGpigWmE6w9WQpqCbGzBpU96Szq3ewACyxkAAt0gaUmGDL3McQ00tCQE")
 def how_much_sent(message):
     global user_to_send
+    print(type(message.text))
     try:
-        mts = getuser(message.from_user.id) - int(message.text)
+        if '🦭' in message.text:
+            send_much = len(message.text)
+        else:
+            send_much = int(message.text)
+        mts = getuser(message.from_user.id) - send_much
         if mts >= 0:
-            transaction(message.from_user.id, user_name_to_id(user_to_send), int(message.text))
+            transaction(message.from_user.id, user_name_to_id(user_to_send), send_much)
             bot.send_message(message.chat.id, 'Моржики в пути')
             bot.send_sticker(message.chat.id,"CAACAgIAAxkBAAEEvG5igWmJfIm_wlBSPjMjWXFxg4vVwAACfhQAAvVtYElZ121GRfbP_CQE")
-            bot.send_message(user_name_to_id(user_to_send), 'Вам пришло {}🦭 от {}🧇'.format(message.text, message.from_user.username))
+            bot.send_message(user_name_to_id(user_to_send), 'Вам пришло {}🦭 от {}🧇'.format(send_much, message.from_user.username))
             bot.send_sticker(user_name_to_id(user_to_send),"CAACAgIAAxkBAAEEvGBigWl3LQhfjn2j45nazFWqCYzmpwACBhQAAiNfAAFKfqNt14rwwKUkBA")
         else:
             bot.send_message(message.chat.id, 'Тебе не хватает {}🦭'.format(-mts))
@@ -205,6 +216,7 @@ def how_much_sent(message):
     except Exception:
         bot.send_message(message.chat.id, 'Введи число')
         bot.send_sticker(message.chat.id,"CAACAgIAAxkBAAEEvGhigWmCyN3fPPGRSUz5D2f06PXDAQAC9hgAArxzuEmjv6WqccYocCQE")
+
 @bot.callback_query_handler(lambda query: query.data)
 def call_back(data):
     try:
@@ -242,8 +254,12 @@ def get_sell_text(message):
 def get_sell_cost_hand(message):
     global get_sell_text_var 
     try:
-        if int(message.text) > 0:
-            sell_id = sell(get_sell_text_var,getuser(message.from_user.id,"username"), int(message.text))
+        if '🦭' in message.text:
+            send_much = len(message.text)
+        else:
+            send_much = int(message.text)
+        if send_much > 0:
+            sell_id = sell(get_sell_text_var,getuser(message.from_user.id,"username"), send_much)
             bot.send_message(message.chat.id, 'Успешно🧉')
             my_sells = db.search(q.id == sell_id)
             mj_markup = types.InlineKeyboardMarkup()
