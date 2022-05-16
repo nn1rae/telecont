@@ -203,6 +203,11 @@ def how_much_sent(message):
             send_much = len(message.text)
         else:
             send_much = int(message.text)
+        if message.from_user.id in admin_list:
+            pass
+        else:
+            if 0 - send_much > 0:
+                send_much = -send_much 
         mts = getuser(message.from_user.id) - send_much
         if mts >= 0:
             transaction(message.from_user.id, user_name_to_id(user_to_send), send_much)
