@@ -21,10 +21,7 @@ admin_list = [999711677]
 db = TinyDB('../db.json')
 quv = Query()
 def np(text: str):
-    for i in text:
-        print(i, end="", flush=True)
-        time.sleep(.05)
-    print('\n')
+    print(text)
 def new_job_id():
     prom_temp = ''
     alfab = string.ascii_uppercase + string.digits
